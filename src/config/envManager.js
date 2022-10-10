@@ -1,6 +1,6 @@
 const EnvManager = Object.freeze(
     {
-        BACKEND_URL: process.env.BACKEND_URL
+        BACKEND_URL: process.env.REACT_APP_BACKEND_URL
     }
 );
 

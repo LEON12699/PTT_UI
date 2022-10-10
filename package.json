@@ -1,8 +1,6 @@
 {
-  "name": "@minimal/material-kit-react",
-  "author": "minimals.cc",
-  "licence": "MIT",
-  "version": "1.5.0",
+  "name": "ptt_ui",
+  "version": "1.0.0",
   "private": false,
   "scripts": {
     "start": "react-scripts start",
