@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 // form
 import { useForm } from 'react-hook-form';
@@ -10,6 +10,9 @@ import { LoadingButton } from '@mui/lab';
 // components
 import Iconify from '../../../components/Iconify';
 import { FormProvider, RHFTextField, RHFCheckbox } from '../../../components/hook-form';
+
+import { postLoginUser  } from '../../../services/auth.service';
+import LocalStorageService from '../../../services/localStorage.service';
 
 // ----------------------------------------------------------------------
 
@@ -39,9 +42,15 @@ export default function LoginForm() {
     formState: { isSubmitting },
   } = methods;
 
-  const onSubmit = async () => {
-    navigate('/dashboard', { replace: true });
+  const onSubmit = async (data ) => {
+    const { email, password } =  data;
+    await postLoginUser({ email, password });
+    const token = LocalStorageService.getAccessToken();
+    if (token) {
+      navigate('/dashboard/app', { replace: true });
+    }
   };
+
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>

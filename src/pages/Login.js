@@ -1,7 +1,9 @@
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 // @mui
 import { styled } from '@mui/material/styles';
 import { Card, Link, Container, Typography } from '@mui/material';
+
 // hooks
 import useResponsive from '../hooks/useResponsive';
 // components
@@ -10,6 +12,11 @@ import Logo from '../components/Logo';
 // sections
 import { LoginForm } from '../sections/auth/login';
 import AuthSocial from '../sections/auth/AuthSocial';
+
+import LocalStorageService from '../services/localStorage.service';
+
+
+
 
 // ----------------------------------------------------------------------
 
@@ -57,6 +64,16 @@ const ContentStyle = styled('div')(({ theme }) => ({
 // ----------------------------------------------------------------------
 
 export default function Login() {
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = LocalStorageService.getAccessToken();
+    if (token) {
+      navigate('/dashboard/app', { replace: true });
+    }
+  }, [navigate]);
+  
   const smUp = useResponsive('up', 'sm');
 
   const mdUp = useResponsive('up', 'md');

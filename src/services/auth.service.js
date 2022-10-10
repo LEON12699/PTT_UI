@@ -1,22 +1,26 @@
-import axios from "axios";
+import axios from 'axios';
+import { fResponse } from '../utils/formatResponse';
 import EnvManager from '../config/envManager';
-import LocalStorageService from "./localStorage.service";
+import LocalStorageService from './localStorage.service';
 
 const backend = axios.create({
-    baseURL: EnvManager.BACKEND_URL,
+  baseURL: EnvManager.BACKEND_URL,
 });
 
-const postLoginUser = async ({ email, password}) => {
-    try {
-        const body = { email, password};
-        const response = await backend.post('/auth/login', body);
-        return response?.data; 
+
+
+const postLoginUser = async ({ email, password }) => {
+  try {
+    const body = { email, password };
+    const response = await backend.post('/auth/login', body);
+    const { data } = response;
+    if (data?.access_token && data?.user) {
+      LocalStorageService.setToken(data);
     }
-    catch (error) {
-        return null;
-    }
+    return fResponse(response);
+  } catch (error) {
+    return null;
+  }
 };
 
-export {
-    postLoginUser
-};
+export { postLoginUser };
