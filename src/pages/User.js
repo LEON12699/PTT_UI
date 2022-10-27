@@ -1,6 +1,6 @@
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 // material
 import {
@@ -19,6 +19,7 @@ import {
   TablePagination,
 } from '@mui/material';
 // components
+import { getUsers } from '../services/user.service';
 import Page from '../components/Page';
 import Label from '../components/Label';
 import Scrollbar from '../components/Scrollbar';
@@ -88,6 +89,14 @@ export default function User() {
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
   };
+
+  const fetchUsers = async () => {
+    const users = await getUsers();
+    console.log(users)
+  }
+  useEffect( () => {
+    fetchUsers();
+  })
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
