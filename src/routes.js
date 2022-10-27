@@ -60,10 +60,6 @@ export default function Router() {
       element: <LoginRoute />,
     },
     {
-      path: 'register',
-      element: <Register />,
-    },
-    {
       path: '/',
       element: <LogoOnlyLayout />,
       children: [
