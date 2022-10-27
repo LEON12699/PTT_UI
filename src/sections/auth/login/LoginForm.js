@@ -11,10 +11,14 @@ import { LoadingButton } from '@mui/lab';
 import Iconify from '../../../components/Iconify';
 import { FormProvider, RHFTextField, RHFCheckbox } from '../../../components/hook-form';
 
+import { useAuth } from '../../../hooks/useAuth';
+
 // ----------------------------------------------------------------------
 
 export default function LoginForm() {
   const navigate = useNavigate();
+  const auth = useAuth();
+
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -39,9 +43,14 @@ export default function LoginForm() {
     formState: { isSubmitting },
   } = methods;
 
-  const onSubmit = async () => {
-    navigate('/dashboard', { replace: true });
+  const onSubmit = async (data ) => {
+    const { email, password } =  data;
+    const isLogged = await auth.login(email, password);
+    if (isLogged) {
+      navigate('/dashboard/app', { replace: true });
+    }
   };
+
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>

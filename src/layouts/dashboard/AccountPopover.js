@@ -7,6 +7,7 @@ import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton } from '@
 import MenuPopover from '../../components/MenuPopover';
 // mocks_
 import account from '../../_mock/account';
+import { useAuth } from '../../hooks/useAuth';
 
 // ----------------------------------------------------------------------
 
@@ -31,6 +32,7 @@ const MENU_OPTIONS = [
 // ----------------------------------------------------------------------
 
 export default function AccountPopover() {
+  const auth = useAuth();
   const anchorRef = useRef(null);
 
   const [open, setOpen] = useState(null);
@@ -41,6 +43,7 @@ export default function AccountPopover() {
 
   const handleClose = () => {
     setOpen(null);
+    auth.logout();
   };
 
   return (
