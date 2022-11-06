@@ -88,7 +88,7 @@ export default function User() {
                   setOpenToast(true);
                   if (status === 200) {
                     fetchUsers();
-                  }https://auth.ioet.com/
+                  }
                 }}
                 title="Activate"
                 color="primary.main"
