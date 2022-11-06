@@ -18,7 +18,7 @@ export const useAuth = () => {
 };
 
 function useProviderAuth() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(LocalStorageService.getUser());
   const navigate = useNavigate();
 
   const login = async (email, password) => {

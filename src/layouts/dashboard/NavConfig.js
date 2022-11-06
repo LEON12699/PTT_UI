@@ -1,5 +1,5 @@
 // component
-import Iconify from '../../components/Iconify';
+import Iconify from '../../components/common/Iconify';
 
 // ----------------------------------------------------------------------
 
