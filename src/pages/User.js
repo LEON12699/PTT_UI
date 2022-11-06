@@ -1,145 +1,178 @@
-import { filter } from 'lodash';
-import { sentenceCase } from 'change-case';
+import * as Yup from 'yup';
 import { useEffect, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
 // material
-import {
-  Card,
-  Table,
-  Stack,
-  Avatar,
-  Button,
-  Checkbox,
-  TableRow,
-  TableBody,
-  TableCell,
-  Container,
-  Typography,
-  TableContainer,
-  TablePagination,
-} from '@mui/material';
+import { Card, Stack, Container, Typography } from '@mui/material';
 // components
-import { getUsers } from '../services/user.service';
+import { DataGrid, GridToolbar } from '@mui/x-data-grid';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import DeleteUserForm from '../forms/DeleteUserForm';
+import { activateUser, deleteUser, getUsers } from '../services/user.service';
 import Page from '../components/Page';
-import Label from '../components/Label';
-import Scrollbar from '../components/Scrollbar';
-import Iconify from '../components/Iconify';
-import SearchNotFound from '../components/SearchNotFound';
-import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
-// mock
-import USERLIST from '../_mock/user';
+import LoadingIndicator from '../components/common/LoadingSpinner';
 
-// ----------------------------------------------------------------------
+import CustomModal from '../components/common/CustomModal';
+import CustomIconButton from '../components/common/CustomIconButton';
+import ToastAlert from '../components/common/ToastAlert';
 
-const TABLE_HEAD = [
-  { id: 'name', label: 'Name', alignRight: false },
-  { id: 'company', label: 'Company', alignRight: false },
-  { id: 'role', label: 'Role', alignRight: false },
-  { id: 'isVerified', label: 'Verified', alignRight: false },
-  { id: 'status', label: 'Status', alignRight: false },
-  { id: '' },
-];
-
-// ----------------------------------------------------------------------
-
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-
-function getComparator(order, orderBy) {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-function applySortFilter(array, comparator, query) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-  if (query) {
-    return filter(array, (_user) => _user.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
-  }
-  return stabilizedThis.map((el) => el[0]);
-}
+const deleteUserModalProps = {
+  title: 'Delete User',
+  description: 'Are you sure you want delete this user ?',
+};
 
 export default function User() {
-  const [page, setPage] = useState(0);
+  const userColumns = [
+    {
+      field: 'name',
+      headerName: 'Name',
+      flex: 1,
+      minWidth: 100,
+    },
+    {
+      field: 'email',
+      headerName: 'Email',
+      flex: 2,
+      minWidth: 200,
+    },
+    {
+      field: 'role',
+      headerName: 'Role',
+      flex: 1,
+      minWidth: 100,
+    },
+    {
+      field: 'isActive',
+      headerName: 'isActive',
+      type: 'boolean',
+      flex: 1,
+      minWidth: 50,
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      filterable: false,
+      disableExport: true,
+      sortable: false,
+      flex: 1,
+      minWidth: 100,
+      renderCell: (params) => {
+        const { id, isActive, email } = params.row;
+        return (
+          <div>
+            {isActive ? (
+              <CustomIconButton
+                onClick={() => {
+                  reset({ userId: id, email });
+                  setOpenDeleteModal(true);
+                }}
+                title="Delete"
+                color="error.main"
+                icon="eva:trash-2-outline"
+              />
+            ) : (
+              <CustomIconButton
+                onClick={async () => {
+                  const { id } = params.row;
+                  const { status } = await activateUser(id);
+                  setMessageToast(
+                    status === 200
+                      ? {
+                          message: 'User activated successfully',
+                          severity: 'success',
+                        }
+                      : {
+                          message: 'Error activating user',
+                          severity: 'error',
+                        }
+                  );
+                  setOpenToast(true);
+                  if (status === 200) {
+                    fetchUsers();
+                  }https://auth.ioet.com/
+                }}
+                title="Activate"
+                color="primary.main"
+                icon="eva:checkmark-circle-outline"
+              />
+            )}
+          </div>
+        );
+      },
+    },
+  ];
 
-  const [order, setOrder] = useState('asc');
-
-  const [selected, setSelected] = useState([]);
-
-  const [orderBy, setOrderBy] = useState('name');
-
-  const [filterName, setFilterName] = useState('');
-
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
-  const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
+  const initialStateGrid = {
+    filter: {
+      filterModel: {
+        items: [{ columnField: 'isActive', operatorValue: 'is', value: 'true' }],
+      },
+    },
   };
+
+  const deleteForm = {
+    schema: Yup.object().shape({
+      userId: Yup.string(),
+    }),
+    defaultValues: {
+      userId: '',
+      email: '',
+    },
+  };
+
+  const formMethods = useForm({
+    resolver: yupResolver(deleteForm.schema),
+    defaultValues: deleteForm.defaultValues,
+  });
+
+  const { reset } = formMethods;
+
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [isLoading, setLoading] = useState(true);
+  const [users, setUsers] = useState([]);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [openToast, setOpenToast] = useState(false);
+  const [messageToast, setMessageToast] = useState({});
 
   const fetchUsers = async () => {
     const users = await getUsers();
-    console.log(users)
-  }
-  useEffect( () => {
+    if (users) setUsers(users);
+    setLoading(false);
+  };
+
+  const onSubmit = async (data) => {
+    const { userId } = data;
+    const { status } = await deleteUser(userId);
+    const isSuccessfullyResponse = status === 200;
+    setMessageToast(
+      isSuccessfullyResponse
+        ? { message: 'User successfully deleted', severity: 'success' }
+        : { message: 'Error on delete the user', severity: 'error' }
+    );
+    setOpenToast(true);
+    if (isSuccessfullyResponse) {
+      reset({ userId: '', email: '' });
+      fetchUsers();
+    }
+
+    setOpenDeleteModal(false);
+  };
+
+  /*   const deleteSelectedUser = async (data) => {
+    const { id, } = data;
+    const { status } = await deleteUser(id);
+    resetUser();
+    setOpenEditModal(false);
+    setMessageToast(result 
+      ? {message: 'User successfully updated', severity:'success'} 
+      : {message: 'Error on updating the User', severity:'error'});
+    setOpenToast(true);
+    await fetchUsers();
+  }; */
+
+  useEffect(() => {
     fetchUsers();
-  })
-
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
-      setSelected(newSelecteds);
-      return;
-    }
-    setSelected([]);
-  };
-
-  const handleClick = (event, name) => {
-    const selectedIndex = selected.indexOf(name);
-    let newSelected = [];
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, name);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
-    }
-    setSelected(newSelected);
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleFilterByName = (event) => {
-    setFilterName(event.target.value);
-  };
-
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - USERLIST.length) : 0;
-
-  const filteredUsers = applySortFilter(USERLIST, getComparator(order, orderBy), filterName);
-
-  const isUserNotFound = filteredUsers.length === 0;
+  }, []);
 
   return (
     <Page title="User">
@@ -148,97 +181,57 @@ export default function User() {
           <Typography variant="h4" gutterBottom>
             User
           </Typography>
-          <Button variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-            New User
-          </Button>
         </Stack>
 
         <Card>
-          <UserListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
-
-          <Scrollbar>
-            <TableContainer sx={{ minWidth: 800 }}>
-              <Table>
-                <UserListHead
-                  order={order}
-                  orderBy={orderBy}
-                  headLabel={TABLE_HEAD}
-                  rowCount={USERLIST.length}
-                  numSelected={selected.length}
-                  onRequestSort={handleRequestSort}
-                  onSelectAllClick={handleSelectAllClick}
+          {isLoading ? (
+            <LoadingIndicator />
+          ) : (
+            <div style={{ display: 'flex', height: '70vh' }}>
+              <div style={{ flexGrow: 1 }}>
+                <DataGrid
+                  rows={users}
+                  initialState={initialStateGrid}
+                  columns={userColumns}
+                  getRowId={(user) => user.id}
+                  pageSize={rowsPerPage}
+                  onPageSizeChange={(newPageSize) => setRowsPerPage(newPageSize)}
+                  rowsPerPageOptions={[10, 20, 50]}
+                  onSelectionModelChange={(usersSelected) => {
+                    const selectedGridUsers = users.filter((user) => usersSelected.includes(user.id));
+                    setSelectedUsers(selectedGridUsers);
+                  }}
+                  pagination
+                  checkboxSelection
+                  disableSelectionOnClick
+                  components={{ Toolbar: GridToolbar }}
+                  getRowHeight={() => 'auto'}
                 />
-                <TableBody>
-                  {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, role, status, company, avatarUrl, isVerified } = row;
-                    const isItemSelected = selected.indexOf(name) !== -1;
-
-                    return (
-                      <TableRow
-                        hover
-                        key={id}
-                        tabIndex={-1}
-                        role="checkbox"
-                        selected={isItemSelected}
-                        aria-checked={isItemSelected}
-                      >
-                        <TableCell padding="checkbox">
-                          <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, name)} />
-                        </TableCell>
-                        <TableCell component="th" scope="row" padding="none">
-                          <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={name} src={avatarUrl} />
-                            <Typography variant="subtitle2" noWrap>
-                              {name}
-                            </Typography>
-                          </Stack>
-                        </TableCell>
-                        <TableCell align="left">{company}</TableCell>
-                        <TableCell align="left">{role}</TableCell>
-                        <TableCell align="left">{isVerified ? 'Yes' : 'No'}</TableCell>
-                        <TableCell align="left">
-                          <Label variant="ghost" color={(status === 'banned' && 'error') || 'success'}>
-                            {sentenceCase(status)}
-                          </Label>
-                        </TableCell>
-
-                        <TableCell align="right">
-                          <UserMoreMenu />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {emptyRows > 0 && (
-                    <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={6} />
-                    </TableRow>
-                  )}
-                </TableBody>
-
-                {isUserNotFound && (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <SearchNotFound searchQuery={filterName} />
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                )}
-              </Table>
-            </TableContainer>
-          </Scrollbar>
-
-          <TablePagination
-            rowsPerPageOptions={[5, 10, 25]}
-            component="div"
-            count={USERLIST.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
+              </div>
+            </div>
+          )}
         </Card>
       </Container>
+
+      <CustomModal
+        {...deleteUserModalProps}
+        open={openDeleteModal}
+        handleClose={() => setOpenDeleteModal(false)}
+        children={
+          <DeleteUserForm
+            onSubmit={onSubmit}
+            formMethods={formMethods}
+            handleCancel={() => setOpenDeleteModal(false)}
+          />
+        }
+      />
+
+      <ToastAlert
+        open={openToast}
+        handleClose={() => setOpenToast(false)}
+        message={messageToast.message}
+        severity={messageToast.severity}
+      />
     </Page>
   );
 }
