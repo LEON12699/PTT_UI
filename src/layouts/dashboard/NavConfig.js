@@ -1,5 +1,5 @@
 // component
-import Iconify from '../../components/Iconify';
+import Iconify from '../../components/common/Iconify';
 
 // ----------------------------------------------------------------------
 
@@ -25,16 +25,6 @@ const navConfig = [
     title: 'blog',
     path: '/dashboard/blog',
     icon: getIcon('eva:file-text-fill'),
-  },
-  {
-    title: 'login',
-    path: '/login',
-    icon: getIcon('eva:lock-fill'),
-  },
-  {
-    title: 'register',
-    path: '/register',
-    icon: getIcon('eva:person-add-fill'),
   },
   {
     title: 'Not found',

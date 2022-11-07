@@ -10,7 +10,7 @@ import useResponsive from '../hooks/useResponsive';
 import Page from '../components/Page';
 import Logo from '../components/Logo';
 // sections
-import { LoginForm } from '../sections/auth/login';
+import LoginForm  from '../forms/LoginForm';
 import AuthSocial from '../sections/auth/AuthSocial';
 
 import LocalStorageService from '../services/localStorage.service';
