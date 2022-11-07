@@ -1,24 +1,20 @@
 import * as Yup from 'yup';
 import { useEffect, useState } from 'react';
 // material
-import { Card, Stack, Container, Typography } from '@mui/material';
+import { Card, Stack, Container, Typography, Menu, MenuItem, Button } from '@mui/material';
 // components
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import DeleteUserForm from '../forms/DeleteUserForm';
-import { activateUser, deleteUser, getUsers } from '../services/user.service';
+import { ActiveOrDeleteUserFrom } from '../forms/UserForm';
+import { activeUser, deleteUser, getUsers, bulkUpdateUsers } from '../services/user.service';
 import Page from '../components/Page';
 import LoadingIndicator from '../components/common/LoadingSpinner';
 
 import CustomModal from '../components/common/CustomModal';
 import CustomIconButton from '../components/common/CustomIconButton';
 import ToastAlert from '../components/common/ToastAlert';
-
-const deleteUserModalProps = {
-  title: 'Delete User',
-  description: 'Are you sure you want delete this user ?',
-};
+import Iconify from '../components/common/Iconify';
 
 export default function User() {
   const userColumns = [
@@ -56,13 +52,14 @@ export default function User() {
       flex: 1,
       minWidth: 100,
       renderCell: (params) => {
-        const { id, isActive, email } = params.row;
+        const { id, isActive } = params.row;
         return (
           <div>
             {isActive ? (
               <CustomIconButton
                 onClick={() => {
-                  reset({ userId: id, email });
+                  reset({ userId: [id] });
+                  setCountUsersDelete(1);
                   setOpenDeleteModal(true);
                 }}
                 title="Delete"
@@ -72,8 +69,7 @@ export default function User() {
             ) : (
               <CustomIconButton
                 onClick={async () => {
-                  const { id } = params.row;
-                  const { status } = await activateUser(id);
+                  const { status } = await activeUser(id);
                   setMessageToast(
                     status === 200
                       ? {
@@ -101,6 +97,31 @@ export default function User() {
     },
   ];
 
+  const multipleUserActions = [
+    {
+      label: 'Delete',
+      icon: 'eva:trash-2-outline',
+      color: 'error.main',
+      onClick: () => {
+        reset({ userId: selectedUsers });
+        setCountUsersDelete(selectedUsers.length);
+        handleMenuOptionsClose();
+        setOpenDeleteModal(true);
+      }
+    },
+    {
+      label: 'Activate',
+      icon: 'eva:checkmark-circle-outline',
+      color: 'primary.main',
+      onClick: () => {
+        reset({ userId: selectedUsers });
+        setCountUsersActive(selectedUsers.length);
+        handleMenuOptionsClose();
+        setOpenActivateModal(true);
+      }
+    },
+  ]
+
   const initialStateGrid = {
     filter: {
       filterModel: {
@@ -111,11 +132,10 @@ export default function User() {
 
   const deleteForm = {
     schema: Yup.object().shape({
-      userId: Yup.string(),
+      userId: Yup.array().required('User id is required'),
     }),
     defaultValues: {
-      userId: '',
-      email: '',
+      userId: [],
     },
   };
 
@@ -130,9 +150,22 @@ export default function User() {
   const [isLoading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [openActivateModal, setOpenActivateModal] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [openToast, setOpenToast] = useState(false);
   const [messageToast, setMessageToast] = useState({});
+  const [countUsersDelete, setCountUsersDelete] = useState(0);
+  const [countUsersActive, setCountUsersActive] = useState(0);
+  const [multiSelectAnchorEl, setMultiSelectAnchorEl] = useState(null);
+  const open = Boolean(multiSelectAnchorEl);
+
+  const handleMenuOptionsClick = (event) => {
+    setMultiSelectAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuOptionsClose = () => {
+    setMultiSelectAnchorEl(null);
+  };
 
   const fetchUsers = async () => {
     const users = await getUsers();
@@ -140,35 +173,54 @@ export default function User() {
     setLoading(false);
   };
 
-  const onSubmit = async (data) => {
+  const onSubmitDelete = async (data) => {
     const { userId } = data;
-    const { status } = await deleteUser(userId);
+    const isMultipleDelete = userId.length > 1;
+    const updateValues = isMultipleDelete ? {
+      ids: userId,
+      isActive: false,
+    } : userId[0];
+
+    
+    const { status } = isMultipleDelete ? await bulkUpdateUsers(updateValues) : await deleteUser(updateValues);
     const isSuccessfullyResponse = status === 200;
     setMessageToast(
       isSuccessfullyResponse
-        ? { message: 'User successfully deleted', severity: 'success' }
-        : { message: 'Error on delete the user', severity: 'error' }
+        ? { message: `Users successfully deleted`, severity: 'success' }
+        : { message: 'Error on delete the users', severity: 'error' }
     );
     setOpenToast(true);
     if (isSuccessfullyResponse) {
-      reset({ userId: '', email: '' });
       fetchUsers();
     }
 
     setOpenDeleteModal(false);
+    setCountUsersDelete(0);
   };
 
-  /*   const deleteSelectedUser = async (data) => {
-    const { id, } = data;
-    const { status } = await deleteUser(id);
-    resetUser();
-    setOpenEditModal(false);
-    setMessageToast(result 
-      ? {message: 'User successfully updated', severity:'success'} 
-      : {message: 'Error on updating the User', severity:'error'});
+  const onSubmitActivate = async (data) => {
+    const { userId } = data;
+    const updateValues =  {
+      ids: userId,
+      isActive: true,
+    } 
+  
+    const { status } =  await bulkUpdateUsers(updateValues);
+    const isSuccessfullyResponse = status === 200;
+    setMessageToast(
+      isSuccessfullyResponse
+        ? { message: `Users successfully activate`, severity: 'success' }
+        : { message: 'Error on delete the users', severity: 'error' }
+    );
+
     setOpenToast(true);
-    await fetchUsers();
-  }; */
+    if (isSuccessfullyResponse) {
+      fetchUsers();
+    }
+
+    setOpenActivateModal(false);
+    setCountUsersActive(0);
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -181,6 +233,40 @@ export default function User() {
           <Typography variant="h4" gutterBottom>
             User
           </Typography>
+          {selectedUsers.length > 0 && (
+            <div>
+              <Button
+                id="basic-button"
+                variant='contained'
+                aria-controls={open ? 'basic-menu' : undefined}
+                aria-haspopup="true"
+                aria-expanded={open ? 'true' : undefined}
+                onClick={handleMenuOptionsClick}
+                endIcon={open ? <Iconify icon="eva:arrow-up-outline"/> : <Iconify icon="eva:arrow-down-outline" /> }
+              >
+                Acciones
+              </Button>
+
+              <Menu
+                id="basic-menu"
+                anchorEl={multiSelectAnchorEl}
+                open={open}
+                onClose={handleMenuOptionsClose}
+                MenuListProps={{
+                  'aria-labelledby': 'basic-button',
+                }}
+              >
+              {
+                multipleUserActions.map((action, index) => (
+                  <MenuItem key={index} onClick={() => action.onClick()} sx={{color: action.color}}> 
+                    {action?.icon ? <Iconify icon={action.icon} /> : null}
+                    {action.label}
+                  </MenuItem>
+                ))
+              }
+              </Menu>
+            </div>
+          )}
         </Stack>
 
         <Card>
@@ -198,8 +284,7 @@ export default function User() {
                   onPageSizeChange={(newPageSize) => setRowsPerPage(newPageSize)}
                   rowsPerPageOptions={[10, 20, 50]}
                   onSelectionModelChange={(usersSelected) => {
-                    const selectedGridUsers = users.filter((user) => usersSelected.includes(user.id));
-                    setSelectedUsers(selectedGridUsers);
+                    setSelectedUsers(usersSelected);
                   }}
                   pagination
                   checkboxSelection
@@ -214,17 +299,34 @@ export default function User() {
       </Container>
 
       <CustomModal
-        {...deleteUserModalProps}
+        title="Delete User"
+        description={`Are you sure you want to active ${countUsersDelete} user(s)?`}
         open={openDeleteModal}
         handleClose={() => setOpenDeleteModal(false)}
         children={
-          <DeleteUserForm
-            onSubmit={onSubmit}
+          <ActiveOrDeleteUserFrom
+            onSubmit={onSubmitDelete}
             formMethods={formMethods}
             handleCancel={() => setOpenDeleteModal(false)}
+            confirmButtonText="Delete"
           />
         }
       />
+
+      <CustomModal
+        title="Active User"
+        description={`Are you sure you want to active ${countUsersActive} user(s)?`}
+        open={openActivateModal}
+        handleClose={() => setOpenActivateModal(false)}
+        children={
+          <ActiveOrDeleteUserFrom
+            onSubmit={onSubmitActivate}
+            formMethods={formMethods}
+            handleCancel={() => setOpenActivateModal(false)}
+            confirmButtonText="Active"
+          />
+        }
+      /> 
 
       <ToastAlert
         open={openToast}

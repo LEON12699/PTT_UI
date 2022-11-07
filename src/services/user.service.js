@@ -35,7 +35,18 @@ const deleteUser = async (id) => {
     }
 }
 
-const activateUser = async (id) => {
+const bulkUpdateUsers = async (updateValues) => {
+    try {
+        const response = await backend.put(`${USER_PATH}/bulkUpdate`, updateValues)
+        return fResponse(response);
+    }
+    catch (error) {
+        return fResponse(error.response);
+    }
+}
+
+
+const activeUser = async (id) => {
     try {
         const response = await backend.patch(`${USER_PATH}/activate/${id}`)
         return fResponse(response);
@@ -46,7 +57,8 @@ const activateUser = async (id) => {
 }
 
 export {
-    activateUser,
+    activeUser,
     deleteUser,
     getUsers,
+    bulkUpdateUsers,
 };
