@@ -6,7 +6,7 @@ import { Card, Stack, Container, Typography, Menu, MenuItem, Button } from '@mui
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { ActiveOrDeleteUserFrom } from '../forms/UserForm';
+import { ActiveOrDeleteForm } from '../forms/User';
 import { activeUser, deleteUser, getUsers, bulkUpdateUsers } from '../services/user.service';
 import Page from '../components/Page';
 import LoadingIndicator from '../components/common/LoadingSpinner';
@@ -15,8 +15,65 @@ import CustomModal from '../components/common/CustomModal';
 import CustomIconButton from '../components/common/CustomIconButton';
 import ToastAlert from '../components/common/ToastAlert';
 import Iconify from '../components/common/Iconify';
+import { EditForm } from '../forms/User/Edit';
+import { ROLES } from '../utils/constants';
 
 export default function User() {
+  const initialStateGrid = {
+    filter: {
+      filterModel: {
+        items: [{ columnField: 'isActive', operatorValue: 'is', value: 'true' }],
+      },
+    },
+  };
+
+  const activeDeleteFormValues = {
+    schema: Yup.object().shape({
+      userId: Yup.array().required('User id is required'),
+    }),
+    defaultValues: {
+      userId: [],
+    },
+  };
+
+  const editFormValues = {
+    schema: Yup.object().shape({
+      userId: Yup.array().required('User id is required'),
+      role: Yup.string().required('Role is required'),
+    }),
+    defaultValues: {
+      userId: [],
+      role: '',
+    },
+  };
+
+  const formEditMethods = useForm({
+    resolver: yupResolver(editFormValues.schema),
+    defaultValues: editFormValues.defaultValues,
+  });
+
+  const { reset: resetEdit } = formEditMethods;
+
+  const formMethods = useForm({
+    resolver: yupResolver(activeDeleteFormValues.schema),
+    defaultValues: activeDeleteFormValues.defaultValues,
+  });
+
+  const { reset } = formMethods;
+
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [isLoading, setLoading] = useState(true);
+  const [users, setUsers] = useState([]);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [openActivateModal, setOpenActivateModal] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [openToast, setOpenToast] = useState(false);
+  const [messageToast, setMessageToast] = useState({});
+  const [countUsersDelete, setCountUsersDelete] = useState(0);
+  const [multiSelectAnchorEl, setMultiSelectAnchorEl] = useState(null);
+  const open = Boolean(multiSelectAnchorEl);
+
   const userColumns = [
     {
       field: 'name',
@@ -52,42 +109,42 @@ export default function User() {
       flex: 1,
       minWidth: 100,
       renderCell: (params) => {
-        const { id, isActive } = params.row;
+        const { id, isActive, role } = params.row;
         return (
           <div>
             {isActive ? (
-              <CustomIconButton
-                onClick={() => {
-                  reset({ userId: [id] });
-                  setCountUsersDelete(1);
-                  setOpenDeleteModal(true);
-                }}
-                title="Delete"
-                color="error.main"
-                icon="eva:trash-2-outline"
-              />
+              <>
+                <CustomIconButton
+                  onClick={() => {
+                    reset({ userId: [id] });
+                    setCountUsersDelete(1);
+                    setOpenDeleteModal(true);
+                  }}
+                  title="Delete"
+                  color="error.main"
+                  icon="eva:trash-2-outline"
+                />
+                <CustomIconButton
+                  onClick={() => {
+                    resetEdit({
+                      userId: [id],
+                      role,
+                    });
+                    setOpenEditModal(true);
+                  }}
+                  title="Edit"
+                  color="secondary.main"
+                  icon="eva:edit-2-outline"
+                />
+              </>
             ) : (
               <CustomIconButton
                 onClick={async () => {
-                  const { status } = await activeUser(id);
-                  setMessageToast(
-                    status === 200
-                      ? {
-                          message: 'User activated successfully',
-                          severity: 'success',
-                        }
-                      : {
-                          message: 'Error activating user',
-                          severity: 'error',
-                        }
-                  );
-                  setOpenToast(true);
-                  if (status === 200) {
-                    fetchUsers();
-                  }
+                  reset({ userId: [id] });
+                  setOpenActivateModal(true);
                 }}
                 title="Activate"
-                color="primary.main"
+                color="info.main"
                 icon="eva:checkmark-circle-outline"
               />
             )}
@@ -99,6 +156,16 @@ export default function User() {
 
   const multipleUserActions = [
     {
+      label: 'Edit',
+      icon: 'eva:edit-2-outline',
+      color: 'secondary.main',
+      onClick: () => {
+        resetEdit({ userId: selectedUsers, role: '' });
+        handleMenuOptionsClose();
+        setOpenEditModal(true);
+      },
+    },
+    {
       label: 'Delete',
       icon: 'eva:trash-2-outline',
       color: 'error.main',
@@ -107,57 +174,22 @@ export default function User() {
         setCountUsersDelete(selectedUsers.length);
         handleMenuOptionsClose();
         setOpenDeleteModal(true);
-      }
-    },
-    {
-      label: 'Activate',
-      icon: 'eva:checkmark-circle-outline',
-      color: 'primary.main',
-      onClick: () => {
-        reset({ userId: selectedUsers });
-        setCountUsersActive(selectedUsers.length);
-        handleMenuOptionsClose();
-        setOpenActivateModal(true);
-      }
-    },
-  ]
-
-  const initialStateGrid = {
-    filter: {
-      filterModel: {
-        items: [{ columnField: 'isActive', operatorValue: 'is', value: 'true' }],
       },
     },
+  ];
+
+  const showToastMessage = (isSuccessful, messages) => {
+    const successfulMessage = { message: messages.success, severity: 'success' };
+    const errorMessage = { message: messages.error, severity: 'error' };
+    setMessageToast(isSuccessful ? successfulMessage : errorMessage);
+    setOpenToast(true);
   };
 
-  const deleteForm = {
-    schema: Yup.object().shape({
-      userId: Yup.array().required('User id is required'),
-    }),
-    defaultValues: {
-      userId: [],
-    },
+  const fetchUsers = async () => {
+    const users = await getUsers();
+    if (users) setUsers(users);
+    setLoading(false);
   };
-
-  const formMethods = useForm({
-    resolver: yupResolver(deleteForm.schema),
-    defaultValues: deleteForm.defaultValues,
-  });
-
-  const { reset } = formMethods;
-
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [isLoading, setLoading] = useState(true);
-  const [users, setUsers] = useState([]);
-  const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const [openActivateModal, setOpenActivateModal] = useState(false);
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  const [openToast, setOpenToast] = useState(false);
-  const [messageToast, setMessageToast] = useState({});
-  const [countUsersDelete, setCountUsersDelete] = useState(0);
-  const [countUsersActive, setCountUsersActive] = useState(0);
-  const [multiSelectAnchorEl, setMultiSelectAnchorEl] = useState(null);
-  const open = Boolean(multiSelectAnchorEl);
 
   const handleMenuOptionsClick = (event) => {
     setMultiSelectAnchorEl(event.currentTarget);
@@ -167,29 +199,41 @@ export default function User() {
     setMultiSelectAnchorEl(null);
   };
 
-  const fetchUsers = async () => {
-    const users = await getUsers();
-    if (users) setUsers(users);
-    setLoading(false);
+  const onSubmitEdit = async (data) => {
+    const { userId, role } = data;
+    const updateValues = {
+      ids: userId,
+      role,
+    };
+    const { status } = await bulkUpdateUsers(updateValues);
+    const isSuccessfullyResponse = status === 200;
+    const messages = {
+      success: `Users successfully edited`,
+      error: 'Error editing users',
+    };
+
+    showToastMessage(isSuccessfullyResponse, messages);
+
+    if (isSuccessfullyResponse) {
+      fetchUsers();
+    }
+
+    setOpenEditModal(false);
   };
 
   const onSubmitDelete = async (data) => {
     const { userId } = data;
     const isMultipleDelete = userId.length > 1;
-    const updateValues = isMultipleDelete ? {
-      ids: userId,
-      isActive: false,
-    } : userId[0];
+    const updateValues = isMultipleDelete ? { ids: userId, isActive: false } : userId[0];
 
-    
     const { status } = isMultipleDelete ? await bulkUpdateUsers(updateValues) : await deleteUser(updateValues);
     const isSuccessfullyResponse = status === 200;
-    setMessageToast(
-      isSuccessfullyResponse
-        ? { message: `Users successfully deleted`, severity: 'success' }
-        : { message: 'Error on delete the users', severity: 'error' }
-    );
-    setOpenToast(true);
+    const messages = {
+      success: "User's successfully deleted",
+      error: 'Error on delete the user',
+    };
+
+    showToastMessage(isSuccessfullyResponse, messages);
     if (isSuccessfullyResponse) {
       fetchUsers();
     }
@@ -200,26 +244,21 @@ export default function User() {
 
   const onSubmitActivate = async (data) => {
     const { userId } = data;
-    const updateValues =  {
-      ids: userId,
-      isActive: true,
-    } 
-  
-    const { status } =  await bulkUpdateUsers(updateValues);
-    const isSuccessfullyResponse = status === 200;
-    setMessageToast(
-      isSuccessfullyResponse
-        ? { message: `Users successfully activate`, severity: 'success' }
-        : { message: 'Error on delete the users', severity: 'error' }
-    );
+    const { status } = await activeUser(userId[0]);
 
-    setOpenToast(true);
+    const isSuccessfullyResponse = status === 200;
+    const messages = {
+      success: "User's successfully activated",
+      error: 'Error on activate the user',
+    };
+
+    showToastMessage(isSuccessfullyResponse, messages);
+
     if (isSuccessfullyResponse) {
       fetchUsers();
     }
 
     setOpenActivateModal(false);
-    setCountUsersActive(0);
   };
 
   useEffect(() => {
@@ -237,14 +276,14 @@ export default function User() {
             <div>
               <Button
                 id="basic-button"
-                variant='contained'
+                variant="contained"
                 aria-controls={open ? 'basic-menu' : undefined}
                 aria-haspopup="true"
                 aria-expanded={open ? 'true' : undefined}
                 onClick={handleMenuOptionsClick}
-                endIcon={open ? <Iconify icon="eva:arrow-up-outline"/> : <Iconify icon="eva:arrow-down-outline" /> }
+                startIcon={open ? <Iconify icon="eva:arrow-up-outline" /> : <Iconify icon="eva:arrow-down-outline" />}
               >
-                Acciones
+                Modificar Usuarios
               </Button>
 
               <Menu
@@ -256,14 +295,12 @@ export default function User() {
                   'aria-labelledby': 'basic-button',
                 }}
               >
-              {
-                multipleUserActions.map((action, index) => (
-                  <MenuItem key={index} onClick={() => action.onClick()} sx={{color: action.color}}> 
+                {multipleUserActions.map((action, index) => (
+                  <MenuItem key={index} onClick={() => action.onClick()} sx={{ color: action.color }}>
                     {action?.icon ? <Iconify icon={action.icon} /> : null}
                     {action.label}
                   </MenuItem>
-                ))
-              }
+                ))}
               </Menu>
             </div>
           )}
@@ -279,6 +316,7 @@ export default function User() {
                   rows={users}
                   initialState={initialStateGrid}
                   columns={userColumns}
+                  isRowSelectable={(params) => params.row.isActive}
                   getRowId={(user) => user.id}
                   pageSize={rowsPerPage}
                   onPageSizeChange={(newPageSize) => setRowsPerPage(newPageSize)}
@@ -300,11 +338,11 @@ export default function User() {
 
       <CustomModal
         title="Delete User"
-        description={`Are you sure you want to active ${countUsersDelete} user(s)?`}
+        description={`Are you sure you want to delete ${countUsersDelete} user(s)?`}
         open={openDeleteModal}
         handleClose={() => setOpenDeleteModal(false)}
         children={
-          <ActiveOrDeleteUserFrom
+          <ActiveOrDeleteForm
             onSubmit={onSubmitDelete}
             formMethods={formMethods}
             handleCancel={() => setOpenDeleteModal(false)}
@@ -315,18 +353,34 @@ export default function User() {
 
       <CustomModal
         title="Active User"
-        description={`Are you sure you want to active ${countUsersActive} user(s)?`}
+        description={`Are you sure you want to active this user?`}
         open={openActivateModal}
         handleClose={() => setOpenActivateModal(false)}
         children={
-          <ActiveOrDeleteUserFrom
+          <ActiveOrDeleteForm
             onSubmit={onSubmitActivate}
             formMethods={formMethods}
             handleCancel={() => setOpenActivateModal(false)}
             confirmButtonText="Active"
           />
         }
-      /> 
+      />
+
+      <CustomModal
+        title="Edit User"
+        description={`Change the role of the users`}
+        open={openEditModal}
+        handleClose={() => setOpenEditModal(false)}
+        children={
+          <EditForm
+            onSubmit={onSubmitEdit}
+            isDisabled={!formEditMethods.watch('role')}
+            formMethods={formEditMethods}
+            handleCancel={() => setOpenEditModal(false)}
+            allowedRoles={ROLES}
+          />
+        }
+      />
 
       <ToastAlert
         open={openToast}
