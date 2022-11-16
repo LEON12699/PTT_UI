@@ -2,6 +2,9 @@ import * as Yup from 'yup';
 import { useEffect, useState } from 'react';
 // material
 import { Card, Stack, Container, Typography, Menu, MenuItem, Button } from '@mui/material';
+
+// toast
+import { toast } from 'react-toastify';
 // components
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { useForm } from 'react-hook-form';
@@ -179,6 +182,7 @@ export default function User() {
   ];
 
   const showToastMessage = (isSuccessful, messages) => {
+      toast(messages.success, { type: isSuccessful? 'success': 'error'})
     const successfulMessage = { message: messages.success, severity: 'success' };
     const errorMessage = { message: messages.error, severity: 'error' };
     setMessageToast(isSuccessful ? successfulMessage : errorMessage);
