@@ -1,4 +1,5 @@
 // routes
+import { ToastContainer } from 'react-toastify';
 import Router from './routes';
 // theme
 import ThemeProvider from './theme';
@@ -6,6 +7,7 @@ import ThemeProvider from './theme';
 import ScrollToTop from './components/ScrollToTop';
 import { BaseOptionChartStyle } from './components/chart/BaseOptionChart';
 import { ProviderAuth } from './hooks/useAuth';
+import 'react-toastify/dist/ReactToastify.min.css'
 
 // ----------------------------------------------------------------------
 
@@ -16,6 +18,7 @@ export default function App() {
       <BaseOptionChartStyle />
       <ProviderAuth>
         <Router />
+        <ToastContainer/>
       </ProviderAuth>
     </ThemeProvider>
   );

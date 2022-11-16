@@ -26,6 +26,8 @@ const LANGS = [
 export default function LanguagePopover() {
   const anchorRef = useRef(null);
   const [open, setOpen] = useState(false);
+  const [selectedIndexLanguage, setSelectedIndexLanguage] = useState(0);
+
 
   const handleOpen = () => {
     setOpen(true);
@@ -33,6 +35,11 @@ export default function LanguagePopover() {
 
   const handleClose = () => {
     setOpen(false);
+  };
+
+  const handleMenuItemClick = (_, index) => {
+    setSelectedIndexLanguage(index);
+    handleClose();
   };
 
   return (
@@ -49,7 +56,7 @@ export default function LanguagePopover() {
           }),
         }}
       >
-        <img src={LANGS[0].icon} alt={LANGS[0].label} />
+        <img src={LANGS[selectedIndexLanguage].icon} alt={LANGS[selectedIndexLanguage].label} />
       </IconButton>
 
       <MenuPopover
@@ -64,8 +71,8 @@ export default function LanguagePopover() {
         }}
       >
         <Stack spacing={0.75}>
-          {LANGS.map((option) => (
-            <MenuItem key={option.value} selected={option.value === LANGS[0].value} onClick={() => handleClose()}>
+          {LANGS.map((option, index) => (
+            <MenuItem key={option.value} selected={index === selectedIndexLanguage} onClick={(event) => handleMenuItemClick(event, index)}>
               <Box component="img" alt={option.label} src={option.icon} sx={{ width: 28, mr: 2 }} />
 
               {option.label}
