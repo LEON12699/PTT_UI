@@ -54,7 +54,7 @@ export default function LoginForm() {
     } else {
       reset(defaultValues);
       ['email', 'password'].forEach((field) => setError(field));
-      toast.error('Wrong credentials')
+      toast.error('Wrong credentials', { position:'top-center'})
     }
   };
 

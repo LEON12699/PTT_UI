@@ -7,7 +7,7 @@ import ThemeProvider from './theme';
 import ScrollToTop from './components/ScrollToTop';
 import { BaseOptionChartStyle } from './components/chart/BaseOptionChart';
 import { ProviderAuth } from './hooks/useAuth';
-import 'react-toastify/dist/ReactToastify.min.css'
+import 'react-toastify/dist/ReactToastify.min.css';
 
 // ----------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ export default function App() {
       <BaseOptionChartStyle />
       <ProviderAuth>
         <Router />
-        <ToastContainer/>
+        <ToastContainer pauseOnHover={false} position="bottom-right" newestOnTop autoClose={3000} limit={3} />
       </ProviderAuth>
     </ThemeProvider>
   );

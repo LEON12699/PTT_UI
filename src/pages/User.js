@@ -16,7 +16,6 @@ import LoadingIndicator from '../components/common/LoadingSpinner';
 
 import CustomModal from '../components/common/CustomModal';
 import CustomIconButton from '../components/common/CustomIconButton';
-import ToastAlert from '../components/common/ToastAlert';
 import Iconify from '../components/common/Iconify';
 import { EditForm } from '../forms/User/Edit';
 import { ROLES } from '../utils/constants';
@@ -71,8 +70,6 @@ export default function User() {
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openActivateModal, setOpenActivateModal] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [openToast, setOpenToast] = useState(false);
-  const [messageToast, setMessageToast] = useState({});
   const [countUsersDelete, setCountUsersDelete] = useState(0);
   const [multiSelectAnchorEl, setMultiSelectAnchorEl] = useState(null);
   const open = Boolean(multiSelectAnchorEl);
@@ -182,11 +179,8 @@ export default function User() {
   ];
 
   const showToastMessage = (isSuccessful, messages) => {
-      toast(messages.success, { type: isSuccessful? 'success': 'error'})
-    const successfulMessage = { message: messages.success, severity: 'success' };
-    const errorMessage = { message: messages.error, severity: 'error' };
-    setMessageToast(isSuccessful ? successfulMessage : errorMessage);
-    setOpenToast(true);
+    const messageToShow = isSuccessful ? messages.success : messages.error
+    toast(messageToShow, { type: isSuccessful? 'success': 'error'})
   };
 
   const fetchUsers = async () => {
@@ -384,13 +378,6 @@ export default function User() {
             allowedRoles={ROLES}
           />
         }
-      />
-
-      <ToastAlert
-        open={openToast}
-        handleClose={() => setOpenToast(false)}
-        message={messageToast.message}
-        severity={messageToast.severity}
       />
     </Page>
   );
