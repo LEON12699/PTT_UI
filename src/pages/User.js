@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { CreateAttractionForm } from '../forms/Attraction/Create';
 import { ActiveOrDeleteForm } from '../forms/User';
 import { activeUser, deleteUser, getUsers, bulkUpdateUsers } from '../services/user.service';
 import Page from '../components/Page';
@@ -332,6 +333,8 @@ export default function User() {
             </div>
           )}
         </Card>
+
+        <CreateAttractionForm  onClick={((e)=> console.log(e))} />
       </Container>
 
       <CustomModal
