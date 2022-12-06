@@ -334,7 +334,7 @@ export default function User() {
           )}
         </Card>
 
-        <CreateAttractionForm  onClick={((e)=> console.log(e))} />
+        <CreateAttractionForm />
       </Container>
 
       <CustomModal
