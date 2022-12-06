@@ -13,6 +13,7 @@ import Logo from '../components/Logo';
 import LoginForm  from '../forms/LoginForm';
 
 import LocalStorageService from '../services/localStorage.service';
+import { WrapperMap } from '../components/map';
 
 
 
@@ -73,7 +74,7 @@ export default function Login() {
     }
   }, [navigate]);
   
-  const smUp = useResponsive('up', 'sm');
+  // const smUp = useResponsive('up', 'sm');
 
   const mdUp = useResponsive('up', 'md');
 
@@ -103,7 +104,8 @@ export default function Login() {
 
             {/* <AuthSocial /> */}
 
-            <LoginForm/>
+            {/* <LoginForm/> */}
+            <WrapperMap/>
 
           </ContentStyle>
         </Container>
