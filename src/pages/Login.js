@@ -13,7 +13,6 @@ import Logo from '../components/Logo';
 import LoginForm  from '../forms/LoginForm';
 
 import LocalStorageService from '../services/localStorage.service';
-import { WrapperMap } from '../components/map';
 
 
 
@@ -102,10 +101,7 @@ export default function Login() {
 
             <Typography sx={{ color: 'text.secondary', mb: 5 }}>Enter your details below.</Typography>
 
-            {/* <AuthSocial /> */}
-
-            {/* <LoginForm/> */}
-            <WrapperMap/>
+            <LoginForm/>
 
           </ContentStyle>
         </Container>

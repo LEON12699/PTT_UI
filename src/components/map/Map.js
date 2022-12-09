@@ -14,14 +14,15 @@ Map.propTypes = {
   center: PropTypes.object,
   zoom: PropTypes.number
 };
-function Map({ center, zoom, onClick, onIdle, children, style, ...options }) {
+
+export function Map({ onClick, onIdle, children, style, ...options }) {
   // [START maps_react_map_component_add_map_hooks]
   const ref = useRef(null);
   const [map, setMap] = useState();
 
   useEffect(() => {
     if (ref?.current && !map) {
-      setMap(new window.google.maps.Map(ref.current, { center, zoom, minZoom: 5 , maxZoom: 10}));
+      setMap(new window.google.maps.Map(ref.current, { }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref, map]);
@@ -32,6 +33,7 @@ function Map({ center, zoom, onClick, onIdle, children, style, ...options }) {
   // see discussion in https://github.com/googlemaps/js-samples/issues/946
   useDeepCompareEffectForMaps(() => {
     if (map) {
+      console.log(options)
       map.setOptions(options);
     }
   }, [map, options]);
@@ -108,7 +110,6 @@ export function WrapperMap() {
 
   const onIdle = (m) => {
     console.log('onIdle');
-    console.log(m)
     setZoom(m.getZoom());
     setCenter(m.getCenter().toJSON());
   };

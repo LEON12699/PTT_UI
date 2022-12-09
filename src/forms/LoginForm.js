@@ -50,7 +50,7 @@ export default function LoginForm() {
     const { email, password } = data;
     const isLogged = await auth.login(email, password);
     if (isLogged) {
-      navigate('/dashboard/app', { replace: true });
+      navigate('/dashboard/attraction', { replace: true });
     } else {
       reset(defaultValues);
       ['email', 'password'].forEach((field) => setError(field));

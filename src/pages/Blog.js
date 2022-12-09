@@ -2,23 +2,29 @@ import { Link as RouterLink } from 'react-router-dom';
 // material
 import { Grid, Button, Container, Stack, Typography } from '@mui/material';
 // components
+import { useState } from 'react';
 import Page from '../components/Page';
 import Iconify from '../components/common/Iconify';
-import { BlogPostCard, BlogPostsSort, BlogPostsSearch } from '../sections/@dashboard/blog';
+import { BlogPostCard, BlogPostsSearch } from '../sections/@dashboard/blog';
+import { ProductFilterSidebar } from '../sections/@dashboard/products';
+
 // mock
 import POSTS from '../_mock/blog';
 
-// ----------------------------------------------------------------------
-
-const SORT_OPTIONS = [
-  { value: 'latest', label: 'Latest' },
-  { value: 'popular', label: 'Popular' },
-  { value: 'oldest', label: 'Oldest' },
-];
 
 // ----------------------------------------------------------------------
 
 export default function Blog() {
+  const [openFilter, setOpenFilter] = useState(false);
+
+  const handleOpenFilter = () => {
+    setOpenFilter(true);
+  };
+
+  const handleCloseFilter = () => {
+    setOpenFilter(false);
+  };
+
   return (
     <Page title="Dashboard: Blog">
       <Container>
@@ -26,14 +32,24 @@ export default function Blog() {
           <Typography variant="h4" gutterBottom>
             Blog
           </Typography>
-          <Button variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
-            New Post
+          <Button variant="contained" component={RouterLink} to="/dashboard/attraction/create" startIcon={<Iconify icon="eva:plus-fill" />}>
+            New Attraction
           </Button>
         </Stack>
 
-        <Stack mb={5} direction="row" alignItems="center" justifyContent="space-between">
-          <BlogPostsSearch posts={POSTS} />
-          <BlogPostsSort options={SORT_OPTIONS} />
+        {/* <Stack mb={5} direction="row" alignItems="center" justifyContent="space-between">
+       
+        </Stack> */}
+        <Stack direction="row" flexWrap="wrap-reverse" alignItems="center" justifyContent="flex-start" sx={{ mb: 5 }}>
+          <Stack direction="row" spacing={1} flexShrink={0} sx={{ my: 1 }}>
+
+            <ProductFilterSidebar
+              isOpenFilter={openFilter}
+              onOpenFilter={handleOpenFilter}
+              onCloseFilter={handleCloseFilter}
+            />
+            {/* <ProductSort /> */}
+          </Stack>
         </Stack>
 
         <Grid container spacing={3}>

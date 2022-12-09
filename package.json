@@ -47,7 +47,6 @@
     "@mui/material": "^5.8.6",
     "@mui/x-data-grid": "^5.17.9",
     "@testing-library/jest-dom": "^5.16.4",
-    "apexcharts": "^3.35.3",
     "audit": "^0.0.6",
     "axios": "^1.0.0",
     "change-case": "^4.1.2",

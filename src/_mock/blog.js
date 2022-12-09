@@ -4,7 +4,7 @@ import { faker } from '@faker-js/faker';
 
 const POST_TITLES = [
   'Whiteboard Templates By Industry Leaders',
-  'Tesla Cybertruck-inspired camper trailer for Tesla fans who can’t just wait for the truck!',
+  'Tesla ',
   'Designify Agency Landing Page Design',
   '✨What is Done is Done ✨',
   'Fresh Prince',
@@ -29,9 +29,9 @@ const POST_TITLES = [
   'How to Animate a SVG with border-image',
 ];
 
-const posts = [...Array(23)].map((_, index) => ({
+const posts = [...Array(4)].map((_, index) => ({
   id: faker.datatype.uuid(),
-  cover: `/static/mock-images/covers/cover_${index + 1}.jpg`,
+  cover: `/static/mock-images/covers/cover_1.jpg`,
   title: POST_TITLES[index + 1],
   createdAt: faker.date.past(),
   view: faker.datatype.number(),
