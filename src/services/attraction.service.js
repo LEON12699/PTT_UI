@@ -19,7 +19,7 @@ const postAttraction = async ({
   latitude,
   longitude,
   shortDescription,
-  longDescription,
+  longDescription = '',
   cantonName,
   images,
   coverImage,

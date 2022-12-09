@@ -9,8 +9,8 @@ import User from './pages/User';
 import Login from './pages/Login';
 import NotFound from './pages/Page404';
 import Products from './pages/Products';
-import DashboardApp from './pages/DashboardApp';
 import { useAuth } from './hooks/useAuth';
+import CreateAttraction from './pages/CreateAttraction';
 
 // ----------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ const LoginRoute = () => {
   const { user } = useAuth();
 
   if (!user) return <Login />;
-  return <Navigate to="/dashboard/app" />;
+  return <Navigate to="/dashboard/attraction" />;
 };
 
 export default function Router() {
@@ -48,10 +48,11 @@ export default function Router() {
       path: '/dashboard',
       element: <ProtectedRoute children={<DashboardLayout/>}/>,
       children: [ 
-        { path: 'app', element:  <DashboardApp /> },
         { path: 'user', element: <User/> },
         { path: 'products', element: <Products /> },
-        { path: 'blog', element: <Blog /> },
+        { path: 'attraction', element: <Blog /> },
+        { path: 'attraction/create', element: <CreateAttraction /> },
+  
       ],
     },
     {

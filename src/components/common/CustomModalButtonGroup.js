@@ -11,6 +11,7 @@ ButtonGroup.propTypes = {
   confirmButtonIcon: PropTypes.string,
   confirmButtonText: PropTypes.string,
   isSubmitting: PropTypes.bool,
+  size: PropTypes.string,
 };
 
 
@@ -21,6 +22,7 @@ export function ButtonGroup({
   confirmButtonColor = 'success',
   confirmButtonIcon = 'eva:save-outline',
   confirmButtonText = 'Confirm',
+  size= 'small'
 }) {
   return (
     <div
@@ -36,13 +38,13 @@ export function ButtonGroup({
         onClick={handleCancel}
         color={'error'}
         startIcon={<Iconify icon="eva:close-outline" />}
-        size="small"
+        size={size}
         style={{ marginRight: '5px' }}
       >
         Cancel
       </Button>
       <LoadingButton
-        size="small"
+        size={size}
         disabled={disabledConfirmButton}
         type="submit"
         variant="contained"

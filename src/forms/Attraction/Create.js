@@ -1,20 +1,27 @@
 import * as Yup from 'yup';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { PropTypes } from 'prop-types';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import { Stack } from '@mui/material';
+import { Stack, Paper, Typography } from '@mui/material';
+import { Wrapper } from '@googlemaps/react-wrapper';
 import FormProvider from '../../components/hook-form/FormProvider';
 import RHFTextField from '../../components/hook-form/RHFTextField';
 import { ButtonGroup } from '../../components/common/CustomModalButtonGroup';
 import { RHFCustomAutoComplete } from '../../components/hook-form';
 import FileInput from '../../components/hook-form/RHFFileInput';
 import { postAttraction } from '../../services/attraction.service';
+import { Map, Marker } from '../../components/map';
+import EnvManager from '../../config/envManager';
+import LoadingIndicator from '../../components/common/LoadingSpinner';
+import { CANTON_OPTIONS, CANTON_LABELS } from '../../utils/constants';
+
 
 // 1024 * 1024 * 1; // 1MB
-const CANTON_OPTIONS = ['Zapotillo', 'Paltas', 'Celica', 'Puyango', 'Macará', 'Pindal'];
+
+
 
 CreateAttractionForm.propTypes = {
   handleCancel: PropTypes.func,
@@ -54,7 +61,9 @@ export function CreateAttractionForm({ handleCancel, isDisabled = false }) {
     formState: { isSubmitting },
     formState,
     reset,
+    watch,
   } = methods;
+
 
   useEffect(() => {
     if (formState.isSubmitSuccessful) {
@@ -71,49 +80,115 @@ export function CreateAttractionForm({ handleCancel, isDisabled = false }) {
     }
   }, [formState, reset]);
 
+  const watchCantonName = watch('cantonName');
+  const [position, setPosition] = useState(null);
+  const [restriction, setRestriction] = useState(null);
+  const [zoom, setZoom] = useState(15); // initial zoom
+  const [center, setCenter] = useState({
+    lat: -3.99313,
+    lng: -79.20422,
+  });
+
+
+  useEffect(() => {
+    if (watchCantonName) {
+      const canton = CANTON_OPTIONS.find((c) => c.label === watchCantonName);
+      if (canton?.center && canton?.zoom) {
+        setCenter(canton.center);
+        setZoom(canton.zoom);
+        if(canton.restriction) {
+          setRestriction(canton.restriction);
+        }
+      }
+    }
+  }, [watchCantonName]);
+
+  const onClick = (e) => {
+    // avoid directly mutating state
+    setPosition(e.latLng);
+  };
+
+  const onIdle = (m) => {
+    setZoom(m.getZoom());
+    setCenter(m.getCenter().toJSON());
+  };
+
+  const render = () => <LoadingIndicator/>;
+
   const onSubmit = async (data) => {
-      const response = await postAttraction(data);
-      if (response.status === 201 || response.status === 200) {
-        toast.success('Attraction created successfully') 
-      }
-      else{
-        toast.error('Error creating attraction');;
-      }
+    const response = await postAttraction(data);
+    if (response.status === 201 || response.status === 200) {
+      toast.success('Attraction created successfully');
+    } else {
+      toast.error('Error creating attraction');
+    }
   };
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={3}>
         <RHFTextField name="name" label="Attraction name" required />
-        <RHFCustomAutoComplete name="cantonName" required label="Canton" options={CANTON_OPTIONS} />
-        <Stack spacing={2} direction="row">
-          <RHFTextField name="latitude" type="number" label="latitude" required />
-          <RHFTextField name="longitude" type="number" label="longitude" required />
-        </Stack>
-        <RHFTextField
-          name="shortDescription"
-          label="Resume"
-          multiline
-          minRows={2}
-          maxRows={4}
-          placeholder="Write the more important things"
-          required
-          helperText="max chars"
-        />
-        <RHFTextField
-          multiline
-          name="longDescription"
-          label="Details"
-          placeholder="Describe here..."
-          maxRows={6}
-          minRows={4}
-        />
         <FileInput
           name="coverImage"
           label="Image"
           accept={{
             'image/*': ['.png', '.gif', '.jpeg', '.jpg', '.svg'],
           }}
+        />
+        <Paper elevation={5} rounded sx={{ padding: 2 }}>
+          <Stack spacing={3}>
+            <Typography variant="subtitle2"> Position</Typography>
+            <Typography variant="body2"> Please select the canton and mark the position on the map</Typography>
+
+            <RHFCustomAutoComplete name="cantonName" required label="Canton" options={CANTON_LABELS} />
+            { watchCantonName && (
+              <>
+                <div style={{ display: 'flex', width: '100%', height: '500px' }}>
+                  <Wrapper apiKey={EnvManager.GOOGLE_MAP_KEY} render={render}>
+                    <Map
+                      center={center}
+                      onClick={onClick}
+                      onIdle={onIdle}
+                      zoom={zoom}
+                      minZoom={8}
+                      maxZoom={22}
+                      style={{ flexGrow: '1', height: '100%' }}
+                      restriction={restriction}
+                    >
+                      {position && <Marker key={'marker-lat-long'} position={position} />}
+                    </Map>
+                  </Wrapper>
+                </div>
+                <Stack spacing={2} direction="row">
+                  <RHFTextField
+                    name="latitude"
+                    disabled
+                    type="number"
+                    label="latitude"
+                    required
+                    value={position?.lat() ?? ''}
+                  />
+                  <RHFTextField
+                    name="longitude"
+                    disabled
+                    type="number"
+                    label="longitude"
+                    required
+                    value={position?.lng() ?? ''}
+                  />
+                </Stack>
+              </>
+            )}
+          </Stack>
+        </Paper>
+        <RHFTextField
+          name="shortDescription"
+          label="Details"
+          multiline
+          minRows={6}
+          maxRows={8}
+          placeholder="Describe the attraction here..."
+          required
         />
       </Stack>
       <ButtonGroup

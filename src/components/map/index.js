@@ -1,2 +1,2 @@
-export { WrapperMap } from './Map'
+export { Map } from './Map'
 export  { Marker } from './Marker';

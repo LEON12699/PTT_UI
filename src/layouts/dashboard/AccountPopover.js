@@ -17,22 +17,22 @@ const MENU_OPTIONS = [
     icon: 'eva:home-fill',
     linkTo: '/',
   },
-  {
-    label: 'Profile',
-    icon: 'eva:person-fill',
-    linkTo: '#',
-  },
-  {
-    label: 'Settings',
-    icon: 'eva:settings-2-fill',
-    linkTo: '#',
-  },
+  // {
+  //   label: 'Profile',
+  //   icon: 'eva:person-fill',
+  //   linkTo: '#',
+  // },
+  // {
+  //   label: 'Settings',
+  //   icon: 'eva:settings-2-fill',
+  //   linkTo: '#',
+  // },
 ];
 
 // ----------------------------------------------------------------------
 
 export default function AccountPopover() {
-  const auth = useAuth();
+  const {logout, user } = useAuth();
   const anchorRef = useRef(null);
 
   const [open, setOpen] = useState(null);
@@ -46,10 +46,9 @@ export default function AccountPopover() {
   };
 
   const handleLogout = () => {
-    auth.logout();
+    logout();
   };
 
- 
 
   return (
     <>
@@ -90,10 +89,10 @@ export default function AccountPopover() {
       >
         <Box sx={{ my: 1.5, px: 2.5 }}>
           <Typography variant="subtitle2" noWrap>
-            {account.displayName}
+            {user.name}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {account.email}
+            {user.email}
           </Typography>
         </Box>
 

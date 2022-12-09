@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { PropTypes } from 'prop-types';
+import PropTypes from 'prop-types';
 import { useDropzone } from 'react-dropzone';
 import { useFormContext } from 'react-hook-form';
 
@@ -7,6 +7,7 @@ FileInput.propTypes = {
   name: PropTypes.string.isRequired,
   label: PropTypes.string,
   accept: PropTypes.object,
+  multiple: PropTypes.bool
 };
 
 const thumbsContainer = {
@@ -17,7 +18,7 @@ const thumbsContainer = {
 };
 
 function FileInput(props) {
-  const { name, label = name } = props;
+  const { name, label = name, multiple = false } = props;
   const { register, unregister, setValue, watch } = useFormContext();
   const files = watch(name);
   const onDrop = useCallback(
@@ -38,6 +39,7 @@ function FileInput(props) {
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: props.accept,
+    multiple
   });
   useEffect(() => {
     register(name);
@@ -63,8 +65,7 @@ function FileInput(props) {
                     src={URL.createObjectURL(file)}
                     alt={file.name}
                     style={{
-                      maxWidth:'100%',
-                      maxHeight:'100%'
+                      maxHeight:'250px'
                     }}
                   />
                 </div>
