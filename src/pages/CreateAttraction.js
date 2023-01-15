@@ -1,34 +1,50 @@
-import { Container, Typography, Paper, Stack } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Container, Paper } from '@mui/material';
+import { useState, useEffect } from 'react';
 // components
+import { useLocation, useParams } from 'react-router-dom';
 import Page from '../components/Page';
 import { CreateAttractionForm } from '../forms/Attraction/Create';
-import CustomIconButton from '../components/common/CustomIconButton';
+import HeaderBreadcrumbs from '../components/HeaderBreadcrumbs';
+import { PATH_DASHBOARD } from '../routes/paths';
+import useSettings from '../hooks/useSettings';
+import { getAttraction } from '../services/attraction.service';
 
 // ----------------------------------------------------------------------
 
 export default function CreateAttraction() {
-  const navigate = useNavigate();
+  const [currentAttraction, setCurrentAttraction ] = useState();
+  const { themeStretch } = useSettings();
+  const { pathname } = useLocation();
+  const { id } = useParams();
+  const isEdit = pathname.includes('edit');
+
+  useEffect(()=>{
+    const fetchCurrentAttraction = async (id) =>
+    {
+      if(isEdit){
+      const attractions = await getAttraction(id)
+      setCurrentAttraction(attractions.data);
+    }
+    }
+
+    fetchCurrentAttraction(id)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
 
   return (
-    <Page title="New Attraction">
-      <Container>
-        <Stack direction={'row'} justifyContent='flex-start'>
-        <CustomIconButton
-          onClick={() => {
-            navigate('/dashboard/attraction', { replace: true });
-          }}
-          title="Back to Attraction List"
-          color="info.main"
-          placement='top'
-          icon="eva:arrow-back-outline"
+    <Page title="Create Attraction">
+        <Container maxWidth={themeStretch ? false : 'lg'}>
+        <HeaderBreadcrumbs
+          heading={!isEdit ? "Create Attraction" : "Edit Attraction"}
+          links={[
+            { name: 'Dashboard', href: PATH_DASHBOARD.root },
+            { name: 'Attraction', href: PATH_DASHBOARD.attraction.root },
+            { name: !isEdit ? 'Create': id  },
+            ]}
         />
-        <Typography variant="h4" gutterBottom>
-          New Attraction
-        </Typography>
-        </Stack>
         <Paper elevation={1} sx={{ padding: 2 }}>
-          <CreateAttractionForm />
+          <CreateAttractionForm isEdit={isEdit} attraction={currentAttraction}/>
         </Paper>
       </Container>
     </Page>

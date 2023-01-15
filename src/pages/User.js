@@ -372,9 +372,6 @@ export default function User() {
           />
 
         <Card>
-          {isLoading ? (
-            <LoadingIndicator />
-          ) : (
             <div style={{ display: 'flex', height: '70vh' }}>
               <div style={{ flexGrow: 1 }}>
                 <DataGrid
@@ -386,6 +383,7 @@ export default function User() {
                     toolbarDensityStandard: 'Medium',
                     toolbarDensityComfortable: 'Large',
                   }}
+                  loading={isLoading}
                   initialState={initialStateGrid}
                   columns={userColumns}
                   isRowSelectable={(params) => params.row.isActive}
@@ -404,7 +402,6 @@ export default function User() {
                 />
               </div>
             </div>
-          )}
         </Card>
       </Container>
 

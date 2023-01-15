@@ -17,7 +17,7 @@ export default function Logo({ disabledLink = false, sx }) {
   // const logo = <Box component="img" src="/static/logo.svg" sx={{ width: 40, height: 40, ...sx }} />
 
   const logo = (
-    <Box  component="img" sx={{ width: 40, height: 40, ...sx }}  src='/static/logo.svg' />
+    <Box  component="img" sx={{ width: 40, height: 40, ...sx }}  src='/static/icons/icon.png' />
   );
 
   if (disabledLink) {

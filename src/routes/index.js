@@ -72,8 +72,9 @@ export default function Router() {
         { path: 'attraction', 
         children: [
           { path: PATH_DASHBOARD.attraction.root, element:  <Navigate to="/dashboard/attraction/list" replace /> },
-          { path: PATH_DASHBOARD.attraction.list, element: <Blog /> },
-          { path: PATH_DASHBOARD.attraction.newPost, element: <CreateAttraction />  },
+          { path: PATH_DASHBOARD.attraction.list, element: <Attraction /> },
+          { path: PATH_DASHBOARD.attraction.newAttraction, element: <CreateAttraction />  },
+          { path: PATH_DASHBOARD.attraction.edit, element: <CreateAttraction />  },
         ], }
       ],
     },
@@ -104,6 +105,7 @@ const NotFound = Loadable(lazy(() => import('../pages/Page404')));
 const DashboardLayout = Loadable(lazy(() => import('../layouts/dashboard')));
 const LogoOnlyLayout = Loadable(lazy(() => import('../layouts/LogoOnlyLayout')));
 const CreateAttraction = Loadable(lazy(() => import('../pages/CreateAttraction')));
+const Attraction = Loadable(lazy(() => import('../pages/Attraction') ));
 /*
 const Register = Loadable(lazy(() => import('../pages/authentication/Register')));
 const ResetPassword = Loadable(lazy(() => import('../pages/authentication/ResetPassword')));

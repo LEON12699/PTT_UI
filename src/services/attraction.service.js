@@ -14,13 +14,32 @@ backend.interceptors.request.use(requestAuthInterceptor);
 // interceptor to handle 401 error
 backend.interceptors.response.use((response) => response, responseAuthInterceptorError);
 
-const getAttractions = async ({filters, order}) => {
+const getAttractions = async ({filters, order} = {} ) => {
   try {
     const params = {
       ...( filters && { filters }),
       ...( order && { order }),
     };
     const response = await backend.get(`${ATTRACTION_PATH}`, {params});
+    return fResponse(response);
+  } catch (error) {
+    return fResponse(error.response);
+  }
+};
+
+const getAttraction = async (id) => {
+  try {
+    const response = await backend.get(`${ATTRACTION_PATH}/${id}`);
+    return fResponse(response);
+  } catch (error) {
+    return fResponse(error.response);
+  }
+};
+
+
+const removeAttraction = async ( id ) => {
+  try {
+    const response = await backend.delete(`${ATTRACTION_PATH}/${id}`);
     return fResponse(response);
   } catch (error) {
     return fResponse(error.response);
@@ -46,7 +65,7 @@ const postAttraction = async ({
       long_description: longDescription,
       cantonName,
       images,
-      cover_image: coverImage[0],
+      cover_image: coverImage?.file,
     };
     const bodyFormData = new FormData()
     Object.keys(body).forEach(key => {
@@ -60,4 +79,4 @@ const postAttraction = async ({
   }
 };
 
-export { postAttraction , getAttractions};
+export { postAttraction , getAttractions, getAttraction, removeAttraction};

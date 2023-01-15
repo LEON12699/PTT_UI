@@ -38,8 +38,9 @@ export const PATH_DASHBOARD = {
   },
   attraction: {
     root: path(ROOTS_DASHBOARD, '/attraction'),
-    newPost: path(ROOTS_DASHBOARD, '/attraction/new-post'),
+    newAttraction: path(ROOTS_DASHBOARD, '/attraction/new'),
     list: path(ROOTS_DASHBOARD, '/attraction/list'),
+    edit: path(ROOTS_DASHBOARD, '/attraction/:id/edit')
 /*     post: path(ROOTS_DASHBOARD, '/blog/post/:title'),
     postById: path(ROOTS_DASHBOARD, '/blog/post/apply-these-7-secret-techniques-to-improve-event'),
     newPost: path(ROOTS_DASHBOARD, '/blog/new-post') */

@@ -48,9 +48,9 @@ const NavConfig = [
         path:  PATH_DASHBOARD.attraction.root,
         icon: ICONS?.booking,
         children: [
-          { title: 'posts', path: PATH_DASHBOARD.attraction.list },
+          { title: 'list', path: PATH_DASHBOARD.attraction.list },
  //         { title: 'post', path: "/" },
-          { title: 'new post', path: PATH_DASHBOARD.attraction.newPost }
+          { title: 'new attraction', path: PATH_DASHBOARD.attraction.newAttraction }
         ]
       }
     ]

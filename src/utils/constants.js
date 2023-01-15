@@ -19,6 +19,23 @@ export const CANTON_OPTIONS = [
     }
   },
   {
+    label: 'Celica',
+    center: {
+      lat:-4.103351,
+      lng:-79.955608
+    },
+    zoom: 5,
+    restriction: {
+      latLngBounds: {
+        west: -79.968173,
+        north: -4.093726,
+        south:  -4.125728,
+        east: -79.926802
+      },
+      strictBounds: true
+    }
+  },
+  {
     label: 'Paltas',
     center: {
       lat: -4.042087, 
