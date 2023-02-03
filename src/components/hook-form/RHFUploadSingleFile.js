@@ -16,9 +16,10 @@ const LabelStyle = styled(Typography)(({ theme }) => ({
 
 RHFUploadSingleFile.propTypes = {
   name: PropTypes.string,
+  label: PropTypes.string
 };
 
-export default function RHFUploadSingleFile({ name, ...other }) {
+export default function RHFUploadSingleFile({ name, label= 'Cover', ...other }) {
   
   const { register, unregister, setValue, watch, getFieldState , formState} = useFormContext();
   const file = watch(name);
@@ -43,7 +44,7 @@ export default function RHFUploadSingleFile({ name, ...other }) {
 
   return (
     <div>
-      <LabelStyle>Cover</LabelStyle>
+      <LabelStyle>{label}</LabelStyle>
       <UploadSingleFile
         maxSize={3145728}
         accept={{

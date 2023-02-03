@@ -1,5 +1,5 @@
 /* eslint-disable consistent-return */
-import { useState, useEffect, useRef, Children, isValidElement, cloneElement }from 'react';
+import { useState, useEffect, useRef, Children, isValidElement, cloneElement } from 'react';
 import { Wrapper, Status } from '@googlemaps/react-wrapper';
 import { createCustomEqual } from 'fast-equals';
 import PropTypes from 'prop-types';
@@ -12,7 +12,7 @@ Map.propTypes = {
   children: PropTypes.any,
   style: PropTypes.object,
   center: PropTypes.object,
-  zoom: PropTypes.number
+  zoom: PropTypes.number,
 };
 
 export function Map({ onClick, onIdle, children, style, ...options }) {
@@ -22,7 +22,7 @@ export function Map({ onClick, onIdle, children, style, ...options }) {
 
   useEffect(() => {
     if (ref?.current && !map) {
-      setMap(new window.google.maps.Map(ref.current, { }));
+      setMap(new window.google.maps.Map(ref.current, {}));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref, map]);
@@ -33,7 +33,6 @@ export function Map({ onClick, onIdle, children, style, ...options }) {
   // see discussion in https://github.com/googlemaps/js-samples/issues/946
   useDeepCompareEffectForMaps(() => {
     if (map) {
-      console.log(options)
       map.setOptions(options);
     }
   }, [map, options]);
@@ -41,8 +40,7 @@ export function Map({ onClick, onIdle, children, style, ...options }) {
   // [START maps_react_map_component_event_hooks]
   useEffect(() => {
     if (map) {
-      ['click', 'idle'].forEach((eventName) => window.google.maps.event.clearListeners(map, eventName)
-      );
+      ['click', 'idle'].forEach((eventName) => window.google.maps.event.clearListeners(map, eventName));
       if (onClick) {
         map.addListener('click', onClick);
       }
@@ -56,7 +54,7 @@ export function Map({ onClick, onIdle, children, style, ...options }) {
   // [START maps_react_map_component_return]
   return (
     <>
-      <div ref={ref} style={style} id='map'/>
+      <div ref={ref} style={style} id="map" />
       {Children.map(children, (child) => {
         if (isValidElement(child)) {
           // set the map prop on the child component
@@ -68,9 +66,6 @@ export function Map({ onClick, onIdle, children, style, ...options }) {
   );
   // [END maps_react_map_component_return]
 }
-
-
-
 
 const deepCompareEqualsForMaps = createCustomEqual((deepEqual) => (a, b) => {
   if (a instanceof window.google.maps.LatLng || b instanceof window.google.maps.LatLng) {
@@ -105,11 +100,9 @@ export function WrapperMap() {
   const onClick = (e) => {
     // avoid directly mutating state
     setClicks([...clicks, e.latLng]);
-    console.log(e.latLng.lat())
   };
 
   const onIdle = (m) => {
-    console.log('onIdle');
     setZoom(m.getZoom());
     setCenter(m.getCenter().toJSON());
   };
@@ -129,6 +122,3 @@ export function WrapperMap() {
     </div>
   );
 }
-
-
-

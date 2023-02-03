@@ -1,23 +1,25 @@
 import * as Yup from 'yup';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PropTypes } from 'prop-types';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
-import { Stack, Paper, Typography } from '@mui/material';
+import { Stack, Paper, Typography, Divider } from '@mui/material';
 import { Wrapper } from '@googlemaps/react-wrapper';
 import { styled } from '@mui/material/styles';
 import { LoadingButton } from '@mui/lab';
+import { useNavigate } from 'react-router-dom';
 import FormProvider from '../../components/hook-form/FormProvider';
 import RHFTextField from '../../components/hook-form/RHFTextField';
 import { RHFCustomAutoComplete, RHFUploadSingleFile } from '../../components/hook-form';
-import { postAttraction } from '../../services/attraction.service';
+import { postAttraction, updateAttraction } from '../../services/attraction.service';
 import { Map, Marker } from '../../components/map';
 import EnvManager from '../../config/envManager';
 import LoadingIndicator from '../../components/common/LoadingSpinner';
 import { CANTON_OPTIONS, CANTON_LABELS } from '../../utils/constants';
 import Iconify from '../../components/common/Iconify';
+import RHFUploadMultipleFile from '../../components/hook-form/RHFUploadMultipleFile';
 
 // 1024 * 1024 * 1; // 1MB
 
@@ -33,7 +35,8 @@ CreateAttractionForm.propTypes = {
   attraction: PropTypes.object,
 };
 
-export function CreateAttractionForm({ isEdit = false, isDisabled = false, attraction}) {
+export function CreateAttractionForm({ isEdit = false, isDisabled = false, attraction }) {
+  const navigate = useNavigate();
   const CreateSchema = Yup.object().shape({
     name: Yup.string().required('Attraction name is required'),
     latitude: Yup.number().required('Latitude is required'),
@@ -45,51 +48,35 @@ export function CreateAttractionForm({ isEdit = false, isDisabled = false, attra
     cantonName: Yup.string().required('Canton is required'),
   });
 
-  const defaultValues = {
-    name: attraction?.name || '',
-    latitude: attraction?.latitude || 0,
-    longitude: attraction?.longitude || 0,
-    shortDescription: attraction?.short_description || '',
-    longDescription: '',
-    coverImage: attraction?.cover_image || null,
-    images: [],
-    cantonName: attraction?.canton || '',
-  };
+  const defaultValues = useMemo(
+    () => ({
+      name: attraction?.name || '',
+      latitude: attraction?.latitude || '',
+      longitude: attraction?.longitude || '',
+      shortDescription: attraction?.short_description || '',
+      coverImage: attraction?.cover_image || null,
+      images: attraction?.images || [],
+      cantonName: attraction?.canton || '',
+    }),
+    [attraction]
+  );
 
   const methods = useForm({
     resolver: yupResolver(CreateSchema),
-    defaultValues
+    defaultValues,
   });
-
 
   const {
     handleSubmit,
     formState: { isSubmitting },
-    formState,
     reset,
     watch,
-    setValue
+    setValue,
   } = methods;
 
-
-
-
-  useEffect(() => {
-    if (formState.isSubmitSuccessful) {
-      reset({
-        name: '',
-        latitude: 0,
-        longitude: 0,
-        shortDescription: '',
-        longDescription: '',
-        coverImage: null,
-        images: [],
-        cantonName: '',
-      });
-    }
-  }, [formState, reset]);
-
   const watchCantonName = watch('cantonName');
+  const watchLatitude = watch('latitude');
+  const watchLongitude = watch('longitude');
   const [position, setPosition] = useState([null]);
   const [restriction, setRestriction] = useState(null);
   const [zoom, setZoom] = useState(15); // initial zoom
@@ -98,11 +85,14 @@ export function CreateAttractionForm({ isEdit = false, isDisabled = false, attra
     lng: -79.20422,
   });
 
-  useEffect(() =>{
-    reset(defaultValues)
-    setPosition({ lat: defaultValues.latitude, lng: defaultValues.longitude})
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, [attraction])
+  useEffect(() => {
+    reset(defaultValues);
+    if (attraction) {
+      setPosition({ lat: defaultValues.latitude, lng: defaultValues.longitude });
+    } else {
+      setPosition(null);
+    }
+  }, [attraction, defaultValues, reset]);
 
   useEffect(() => {
     if (watchCantonName) {
@@ -114,15 +104,23 @@ export function CreateAttractionForm({ isEdit = false, isDisabled = false, attra
           setRestriction(canton.restriction);
         }
       }
+
+      if (
+        attraction.canton !== watchCantonName &&
+        (attraction.latitude !== watchLatitude || attraction.longitude !== watchLongitude)
+      )
+        setValue('latitude', '');
+      setValue('longitude', '');
+      setPosition(null);
     }
-  }, [watchCantonName]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setValue, watchCantonName]);
 
   const onClick = (e) => {
     // avoid directly mutating state
     setPosition(e.latLng);
-    console.log(e.latLng);
-    setValue('latitude', e.latLng.lat())
-    setValue('longitude', e.latLng.lng())
+    setValue('latitude', e.latLng.lat());
+    setValue('longitude', e.latLng.lng());
   };
 
   const onIdle = (m) => {
@@ -133,11 +131,15 @@ export function CreateAttractionForm({ isEdit = false, isDisabled = false, attra
   const render = () => <LoadingIndicator />;
 
   const onSubmit = async (data) => {
-    const response = await postAttraction(data);
+    const response = isEdit ? await updateAttraction({ ...data, id: attraction.id }) : await postAttraction(data);
+    const successMessage = isEdit ? 'edited' : 'created';
+    const errorMessage = isEdit ? 'editing' : 'creating';
+    const navigateTo = isEdit ? `/dashboard/attraction/${attraction.id}/edit` : `/dashboard/attraction/list`;
     if (response.status === 201 || response.status === 200) {
-      toast.success('Attraction created successfully');
+      toast.success(`Attraction ${successMessage} successfully`);
+      navigate(navigateTo, { replace: true });
     } else {
-      toast.error('Error creating attraction');
+      toast.error(`Error ${errorMessage} attraction`);
     }
   };
 
@@ -169,20 +171,8 @@ export function CreateAttractionForm({ isEdit = false, isDisabled = false, attra
                   </Wrapper>
                 </div>
                 <Stack spacing={2} direction="row">
-                  <RHFTextField
-                    name="latitude"
-                    disabled
-                    type="number"
-                    label="latitude"
-                    required
-                  />
-                  <RHFTextField
-                    name="longitude"
-                    disabled
-                    type="number"
-                    label="longitude"
-                    required
-                  />
+                  <RHFTextField name="latitude" disabled type="number" label="latitude" required />
+                  <RHFTextField name="longitude" disabled type="number" label="longitude" required />
                 </Stack>
               </>
             )}
@@ -198,6 +188,8 @@ export function CreateAttractionForm({ isEdit = false, isDisabled = false, attra
           required
         />
         <RHFUploadSingleFile name="coverImage" />
+        <RHFUploadMultipleFile name="images" label="Add Images" isEdit={isEdit} />
+        <Divider />
       </Stack>
       <div
         style={{

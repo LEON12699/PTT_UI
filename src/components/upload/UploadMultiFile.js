@@ -52,10 +52,20 @@ UploadMultiFile.propTypes = {
   onRemove: PropTypes.func,
   onRemoveAll: PropTypes.func,
   sx: PropTypes.object,
+  isEdit: PropTypes.bool,
 };
 
-export default function UploadMultiFile({ error, showPreview = false, files, onRemove, onRemoveAll, sx, ...other }) {
-  const hasFile = files.length > 0;
+export default function UploadMultiFile({
+  error,
+  showPreview = false,
+  files,
+  isEdit = false,
+  onRemove,
+  onRemoveAll,
+  sx,
+  ...other
+}) {
+  const hasFile = files?.length > 0;
 
   const { getRootProps, getInputProps, isDragActive, isDragReject, fileRejections } = useDropzone({
     ...other,
@@ -63,7 +73,7 @@ export default function UploadMultiFile({ error, showPreview = false, files, onR
 
   const ShowRejectionItems = () => (
     <Paper
-      variant="outlined"
+      variant="contained"
       sx={{
         py: 1,
         px: 2,
@@ -126,9 +136,10 @@ export default function UploadMultiFile({ error, showPreview = false, files, onR
 
       <List disablePadding sx={{ ...(hasFile && { my: 3 }) }}>
         <AnimatePresence>
-          {files.map((file) => {
-            const { name, size, preview } = file;
-            const key = isString(file) ? file : name;
+          {files?.map((file, index) => {
+            const { file: fileObj, preview } = file;
+            const { name, size } = fileObj || { name: '', size: 0 };
+            const key = isString(file) ? file : `${name}_${index}`;
 
             if (showPreview) {
               return (
@@ -207,14 +218,14 @@ export default function UploadMultiFile({ error, showPreview = false, files, onR
         </AnimatePresence>
       </List>
 
-      {hasFile && (
+      {/* {hasFile && (
         <Stack direction="row" justifyContent="flex-end">
           <Button onClick={onRemoveAll} sx={{ mr: 1.5 }}>
             Remove all
           </Button>
-          <Button variant="contained">Upload files</Button>
+          {isEdit && <Button variant="contained">Upload files</Button>}
         </Stack>
-      )}
+      )} */}
     </Box>
   );
 }
