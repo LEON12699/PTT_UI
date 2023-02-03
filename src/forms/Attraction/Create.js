@@ -106,12 +106,14 @@ export function CreateAttractionForm({ isEdit = false, isDisabled = false, attra
       }
 
       if (
-        attraction.canton !== watchCantonName &&
-        (attraction.latitude !== watchLatitude || attraction.longitude !== watchLongitude)
-      )
+        attraction?.canton !== watchCantonName ||
+        attraction?.latitude !== watchLatitude ||
+        attraction?.longitude !== watchLongitude
+      ) {
         setValue('latitude', '');
-      setValue('longitude', '');
-      setPosition(null);
+        setValue('longitude', '');
+        setPosition(null);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setValue, watchCantonName]);
