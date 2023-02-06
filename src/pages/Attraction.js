@@ -125,7 +125,6 @@ export default function Attraction() {
         return (
           <Stack alignItems={'center'} direction="row" width={'100%'} justifyContent={'center'}>
             <>
-              <CustomIconButton onClick={() => {}} title="View Details" color="grey.main" icon="eva:eye-outline" />
               <CustomIconButton
                 onClick={() => {
                   navigate(PATH_DASHBOARD.attraction.edit.replace(':id', id));

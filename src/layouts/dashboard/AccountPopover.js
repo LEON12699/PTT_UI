@@ -21,18 +21,18 @@ const MENU_OPTIONS = [
   {
     label: 'Home',
     icon: 'eva:home-fill',
-    linkTo: '/'
+    linkTo: '/',
   },
-  {
-    label: 'Profile',
-    icon: 'eva:person-fill',
-    linkTo: '/users' // PATH_DASHBOARD.user.profile
-  },
-  {
-    label: 'Settings',
-    icon: 'eva:settings-2-fill',
-    linkTo: 'settings' // PATH_DASHBOARD.user.account
-  }
+  // {
+  //   label: 'Profile',
+  //   icon: 'eva:person-fill',
+  //   linkTo: '/users' // PATH_DASHBOARD.user.profile
+  // },
+  // {
+  //   label: 'Settings',
+  //   icon: 'eva:settings-2-fill',
+  //   linkTo: 'settings', // PATH_DASHBOARD.user.account
+  // },
 ];
 
 // ----------------------------------------------------------------------
@@ -61,7 +61,7 @@ export default function AccountPopover() {
       }
     } catch (error) {
       console.error(error);
-     // enqueueSnackbar('Unable to logout', { variant: 'error' });
+      // enqueueSnackbar('Unable to logout', { variant: 'error' });
     }
   };
 
@@ -82,9 +82,9 @@ export default function AccountPopover() {
               height: '100%',
               borderRadius: '50%',
               position: 'absolute',
-              bgcolor: (theme) => alpha(theme.palette.grey[900], 0.72)
-            }
-          })
+              bgcolor: (theme) => alpha(theme.palette.grey[900], 0.72),
+            },
+          }),
         }}
       >
         <MyAvatar />
@@ -116,7 +116,7 @@ export default function AccountPopover() {
               sx={{
                 mr: 2,
                 width: 24,
-                height: 24
+                height: 24,
               }}
             />
 
