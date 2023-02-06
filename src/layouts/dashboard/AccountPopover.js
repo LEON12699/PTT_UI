@@ -5,8 +5,6 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
 import { alpha } from '@mui/material/styles';
 import { Button, Box, Divider, MenuItem, Typography } from '@mui/material';
-// routes
-// import { PATH_DASHBOARD } from '../../routes/paths';
 // hooks
 import { useAuth } from '../../hooks/useAuth';
 import useIsMountedRef from '../../hooks/useIsMountedRef';
@@ -14,6 +12,8 @@ import useIsMountedRef from '../../hooks/useIsMountedRef';
 import { MIconButton } from '../../components/@material-extend';
 import MyAvatar from '../../components/MyAvatar';
 import MenuPopover from '../../components/MenuPopover';
+import useSettings from '../../hooks/useSettings';
+import Iconify from '../../components/common/Iconify';
 
 // ----------------------------------------------------------------------
 
@@ -23,17 +23,32 @@ const MENU_OPTIONS = [
     icon: 'eva:home-fill',
     linkTo: '/',
   },
-  // {
-  //   label: 'Profile',
-  //   icon: 'eva:person-fill',
-  //   linkTo: '/users' // PATH_DASHBOARD.user.profile
-  // },
-  // {
-  //   label: 'Settings',
-  //   icon: 'eva:settings-2-fill',
-  //   linkTo: 'settings', // PATH_DASHBOARD.user.account
-  // },
 ];
+
+function ThemeModeItemChange() {
+  const { themeMode, onChangeMode } = useSettings();
+  const isLight = themeMode === 'light';
+  const label = `${isLight ? 'Dark' : 'Light'} mode`;
+  const icon = isLight ? 'eva:moon-fill' : 'eva:moon-outline';
+  const onChange = () => {
+    const themeModeToChange = isLight ? 'dark' : 'light';
+    onChangeMode({ target: { value: themeModeToChange } });
+  };
+
+  return (
+    <MenuItem onClick={onChange} sx={{ typography: 'body1' }}>
+      <Iconify
+        sx={{
+          mr: 2,
+          width: 24,
+          height: 24,
+        }}
+        icon={icon}
+      />
+      {label}
+    </MenuItem>
+  );
+}
 
 // ----------------------------------------------------------------------
 
@@ -123,6 +138,7 @@ export default function AccountPopover() {
             {option.label}
           </MenuItem>
         ))}
+        <ThemeModeItemChange />
 
         <Box sx={{ p: 2, pt: 1.5 }}>
           <Button fullWidth color="inherit" variant="outlined" onClick={handleLogout}>
