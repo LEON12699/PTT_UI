@@ -27,7 +27,10 @@ class LocalStorageService {
   }
 
   static getUser() {
-    return this.getItem(this.userKey);
+    if (this.getItem(this.userKey)){
+      return JSON.parse(this.getItem(this.userKey));
+    }
+    return null;
   }
 
   // static getRefreshToken() {

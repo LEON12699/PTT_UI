@@ -22,6 +22,7 @@ CustomAutoComplete.propTypes = {
   defaultValue: PropTypes.any,
   disableClearable: PropTypes.bool,
   inputRef: PropTypes.any,
+  required: PropTypes.bool,
 }
 export function CustomAutoComplete  ({
   value,
@@ -36,9 +37,10 @@ export function CustomAutoComplete  ({
   defaultValue = '',
   disableClearable = false,
   multiple= false,
+  required = false,
   ...rest
 }) {
-  const textFieldProps = {helperText, error, label, placeholder, ...(warning && {color: 'warning'})};
+  const textFieldProps = {helperText, error, label, placeholder, ...(warning && {color: 'warning'}), required};
   
   return (
     <Autocomplete

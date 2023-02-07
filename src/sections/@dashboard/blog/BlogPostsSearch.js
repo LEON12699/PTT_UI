@@ -21,7 +21,7 @@ BlogPostsSearch.propTypes = {
 export default function BlogPostsSearch({ posts }) {
   return (
     <Autocomplete
-      sx={{ width: 280 }}
+      // sx={{ width: 280 }}
       autoHighlight
       popupIcon={null}
       PopperComponent={PopperStyle}

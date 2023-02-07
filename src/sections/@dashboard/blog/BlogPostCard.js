@@ -25,14 +25,6 @@ const TitleStyle = styled(Link)({
   WebkitBoxOrient: 'vertical',
 });
 
-const AvatarStyle = styled(Avatar)(({ theme }) => ({
-  zIndex: 9,
-  width: 32,
-  height: 32,
-  position: 'absolute',
-  left: theme.spacing(3),
-  bottom: theme.spacing(-2),
-}));
 
 const InfoStyle = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -58,15 +50,18 @@ BlogPostCard.propTypes = {
 };
 
 export default function BlogPostCard({ post, index }) {
-  const { cover, title, view, comment, share, author, createdAt } = post;
+  const { cover_image: cover, name: title, view, created_at: createdAt } = post;
   const latestPostLarge = index === 0;
   const latestPost = index === 1 || index === 2;
 
-  const POST_INFO = [
-    { number: comment, icon: 'eva:message-circle-fill' },
+  const ATTRACTION_INFO = [
     { number: view, icon: 'eva:eye-fill' },
-    { number: share, icon: 'eva:share-fill' },
   ];
+
+  const onErrorLoadImage = (e) => {
+    e.target.onerror = null
+    e.target.src = '/static/mock-images/covers/cover_1.jpg'
+  }
 
   return (
     <Grid item xs={12} sm={latestPostLarge ? 12 : 6} md={latestPostLarge ? 6 : 3}>
@@ -81,7 +76,7 @@ export default function BlogPostCard({ post, index }) {
                 width: '100%',
                 height: '100%',
                 position: 'absolute',
-                bgcolor: (theme) => alpha(theme.palette.grey[900], 0.72),
+                bgcolor: (theme) => alpha(theme.palette.grey[900], 0.2),
               },
             }),
             ...(latestPostLarge && {
@@ -92,34 +87,8 @@ export default function BlogPostCard({ post, index }) {
             }),
           }}
         >
-          <SvgIconStyle
-            color="paper"
-            src="/static/icons/shape-avatar.svg"
-            sx={{
-              width: 80,
-              height: 36,
-              zIndex: 9,
-              bottom: -15,
-              position: 'absolute',
-              color: 'background.paper',
-              ...((latestPostLarge || latestPost) && { display: 'none' }),
-            }}
-          />
-          <AvatarStyle
-            alt={author.name}
-            src={author.avatarUrl}
-            sx={{
-              ...((latestPostLarge || latestPost) && {
-                zIndex: 9,
-                top: 24,
-                left: 24,
-                width: 40,
-                height: 40,
-              }),
-            }}
-          />
-
-          <CoverImgStyle alt={title} src={cover} />
+          
+          <CoverImgStyle alt={title} src={cover} onError={onErrorLoadImage} />
         </CardMediaStyle>
 
         <CardContent
@@ -132,7 +101,9 @@ export default function BlogPostCard({ post, index }) {
             }),
           }}
         >
-          <Typography gutterBottom variant="caption" sx={{ color: 'text.disabled', display: 'block' }}>
+          <Typography gutterBottom variant="caption" sx={{  ...((latestPostLarge || latestPost) && {
+                color: 'common.white',
+              }), display: 'block' }}>
             {fDate(createdAt)}
           </Typography>
 
@@ -153,7 +124,7 @@ export default function BlogPostCard({ post, index }) {
           </TitleStyle>
 
           <InfoStyle>
-            {POST_INFO.map((info, index) => (
+            {ATTRACTION_INFO.map((info, index) => (
               <Box
                 key={index}
                 sx={{
@@ -161,7 +132,7 @@ export default function BlogPostCard({ post, index }) {
                   alignItems: 'center',
                   ml: index === 0 ? 0 : 1.5,
                   ...((latestPostLarge || latestPost) && {
-                    color: 'grey.500',
+                    color: 'grey.100',
                   }),
                 }}
               >
@@ -172,6 +143,8 @@ export default function BlogPostCard({ post, index }) {
           </InfoStyle>
         </CardContent>
       </Card>
+      
+      
     </Grid>
   );
 }

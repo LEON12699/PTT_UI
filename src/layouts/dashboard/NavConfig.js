@@ -1,36 +1,60 @@
-// component
-import Iconify from '../../components/common/Iconify';
+// routes
+import { PATH_DASHBOARD } from '../../routes/paths';
+// components
+import SvgIconStyle from '../../components/SvgIconStyle';
 
 // ----------------------------------------------------------------------
 
-const getIcon = (name) => <Iconify icon={name} width={22} height={22} />;
+const getIcon = (name) => (
+  <SvgIconStyle src={`/static/icons/navbar/${name}.svg`} sx={{ width: '100%', height: '100%' }} />
+);
 
-const navConfig = [
+const ICONS = {
+  blog: getIcon('ic_blog'),
+  cart: getIcon('ic_cart'),
+  user: getIcon('ic_user'),
+  banking: getIcon('ic_banking'),
+  ecommerce: getIcon('ic_ecommerce'),
+  dashboard: getIcon('ic_dashboard'),
+  booking: getIcon('ic_booking')
+};
+
+const NavConfig = [
+  // GENERAL
+  // ----------------------------------------------------------------------
   {
-    title: 'dashboard',
-    path: '/dashboard/app',
-    icon: getIcon('eva:pie-chart-2-fill'),
+    subheader: 'general',
+    items: [{ title: 'General', path: PATH_DASHBOARD.root, icon: ICONS?.dashboard }]
   },
+
+  // MANAGEMENT
+  // ----------------------------------------------------------------------
   {
-    title: 'user',
-    path: '/dashboard/user',
-    icon: getIcon('eva:people-fill'),
-  },
-  {
-    title: 'product',
-    path: '/dashboard/products',
-    icon: getIcon('eva:shopping-bag-fill'),
-  },
-  {
-    title: 'blog',
-    path: '/dashboard/blog',
-    icon: getIcon('eva:file-text-fill'),
-  },
-  {
-    title: 'Not found',
-    path: '/404',
-    icon: getIcon('eva:alert-triangle-fill'),
-  },
+    subheader: 'management',
+    items: [
+      // MANAGEMENT : USER
+      {
+        title: 'user',
+        path: PATH_DASHBOARD.user.root,
+        icon: ICONS?.user,
+        children: [
+          { title: 'list', path: PATH_DASHBOARD.user.list },
+        ]
+      },
+
+      // MANAGEMENT : attraction
+      {
+        title: 'attraction',
+        path:  PATH_DASHBOARD.attraction.root,
+        icon: ICONS?.booking,
+        children: [
+          { title: 'list', path: PATH_DASHBOARD.attraction.list },
+ //         { title: 'post', path: "/" },
+          { title: 'new attraction', path: PATH_DASHBOARD.attraction.newAttraction }
+        ]
+      }
+    ]
+  }
 ];
 
-export default navConfig;
+export default NavConfig;

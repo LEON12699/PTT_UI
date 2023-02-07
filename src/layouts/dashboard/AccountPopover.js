@@ -1,13 +1,19 @@
+import { Icon } from '@iconify/react';
+// import { useSnackbar } from 'notistack5';
 import { useRef, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-// @mui
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+// material
 import { alpha } from '@mui/material/styles';
-import { Box, Divider, Typography, Stack, MenuItem, Avatar, IconButton } from '@mui/material';
-// components
-import MenuPopover from '../../components/MenuPopover';
-// mocks_
-import account from '../../_mock/account';
+import { Button, Box, Divider, MenuItem, Typography } from '@mui/material';
+// hooks
 import { useAuth } from '../../hooks/useAuth';
+import useIsMountedRef from '../../hooks/useIsMountedRef';
+// components
+import { MIconButton } from '../../components/@material-extend';
+import MyAvatar from '../../components/MyAvatar';
+import MenuPopover from '../../components/MenuPopover';
+import useSettings from '../../hooks/useSettings';
+import Iconify from '../../components/common/Iconify';
 
 // ----------------------------------------------------------------------
 
@@ -17,47 +23,72 @@ const MENU_OPTIONS = [
     icon: 'eva:home-fill',
     linkTo: '/',
   },
-  {
-    label: 'Profile',
-    icon: 'eva:person-fill',
-    linkTo: '#',
-  },
-  {
-    label: 'Settings',
-    icon: 'eva:settings-2-fill',
-    linkTo: '#',
-  },
 ];
+
+function ThemeModeItemChange() {
+  const { themeMode, onChangeMode } = useSettings();
+  const isLight = themeMode === 'light';
+  const label = `${isLight ? 'Dark' : 'Light'} mode`;
+  const icon = isLight ? 'eva:moon-fill' : 'eva:moon-outline';
+  const onChange = () => {
+    const themeModeToChange = isLight ? 'dark' : 'light';
+    onChangeMode({ target: { value: themeModeToChange } });
+  };
+
+  return (
+    <MenuItem onClick={onChange} sx={{ typography: 'body1' }}>
+      <Iconify
+        sx={{
+          mr: 2,
+          width: 24,
+          height: 24,
+        }}
+        icon={icon}
+      />
+      {label}
+    </MenuItem>
+  );
+}
 
 // ----------------------------------------------------------------------
 
 export default function AccountPopover() {
-  const auth = useAuth();
   const anchorRef = useRef(null);
+  const navigate = useNavigate();
+  // const { enqueueSnackbar } = useSnackbar();
+  const isMountedRef = useIsMountedRef();
+  const { user, logout } = useAuth();
+  const [open, setOpen] = useState(false);
 
-  const [open, setOpen] = useState(null);
-
-  const handleOpen = (event) => {
-    setOpen(event.currentTarget);
+  const handleOpen = () => {
+    setOpen(true);
   };
-
   const handleClose = () => {
-    setOpen(null);
+    setOpen(false);
   };
 
-  const handleLogout = () => {
-    auth.logout();
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+      if (isMountedRef.current) {
+        handleClose();
+      }
+    } catch (error) {
+      console.error(error);
+      // enqueueSnackbar('Unable to logout', { variant: 'error' });
+    }
   };
-
- 
 
   return (
     <>
-      <IconButton
+      <MIconButton
         ref={anchorRef}
         onClick={handleOpen}
         sx={{
-          p: 0,
+          padding: 0,
+          width: 44,
+          height: 44,
           ...(open && {
             '&:before': {
               zIndex: 1,
@@ -66,52 +97,54 @@ export default function AccountPopover() {
               height: '100%',
               borderRadius: '50%',
               position: 'absolute',
-              bgcolor: (theme) => alpha(theme.palette.grey[900], 0.8),
+              bgcolor: (theme) => alpha(theme.palette.grey[900], 0.72),
             },
           }),
         }}
       >
-        <Avatar src={account.photoURL} alt="photoURL" />
-      </IconButton>
+        <MyAvatar />
+      </MIconButton>
 
-      <MenuPopover
-        open={Boolean(open)}
-        anchorEl={open}
-        onClose={handleClose}
-        sx={{
-          p: 0,
-          mt: 1.5,
-          ml: 0.75,
-          '& .MuiMenuItem-root': {
-            typography: 'body2',
-            borderRadius: 0.75,
-          },
-        }}
-      >
+      <MenuPopover open={open} onClose={handleClose} anchorEl={anchorRef.current} sx={{ width: 220 }}>
         <Box sx={{ my: 1.5, px: 2.5 }}>
-          <Typography variant="subtitle2" noWrap>
-            {account.displayName}
+          <Typography variant="subtitle1" noWrap>
+            {user.displayName}
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-            {account.email}
+            {user.email}
           </Typography>
         </Box>
 
-        <Divider sx={{ borderStyle: 'dashed' }} />
+        <Divider sx={{ my: 1 }} />
 
-        <Stack sx={{ p: 1 }}>
-          {MENU_OPTIONS.map((option) => (
-            <MenuItem key={option.label} to={option.linkTo} component={RouterLink} onClick={handleClose}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </Stack>
+        {MENU_OPTIONS.map((option) => (
+          <MenuItem
+            key={option.label}
+            to={option.linkTo}
+            component={RouterLink}
+            onClick={handleClose}
+            sx={{ typography: 'body2', py: 1, px: 2.5 }}
+          >
+            <Box
+              component={Icon}
+              icon={option.icon}
+              sx={{
+                mr: 2,
+                width: 24,
+                height: 24,
+              }}
+            />
 
-        <Divider sx={{ borderStyle: 'dashed' }} />
+            {option.label}
+          </MenuItem>
+        ))}
+        <ThemeModeItemChange />
 
-        <MenuItem onClick={handleLogout} sx={{ m: 1 }}>
-          Logout
-        </MenuItem>
+        <Box sx={{ p: 2, pt: 1.5 }}>
+          <Button fullWidth color="inherit" variant="outlined" onClick={handleLogout}>
+            Logout
+          </Button>
+        </Box>
       </MenuPopover>
     </>
   );
