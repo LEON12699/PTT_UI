@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { postLoginUser } from '../services/auth.service';
+import { postLoginUser, postForgotPassword, postResetPassword } from '../services/auth.service';
 import LocalStorageService from '../services/localStorage.service';
 
 const authContext = createContext();
@@ -45,6 +45,17 @@ function useProviderAuth() {
     setUser(null);
   };
 
+  const forgotPassword = async (email) => {
+    await postForgotPassword({email})
+  }
+
+  const resetPassword = async (newPassword, confirmationPassword, token) => {
+    if( newPassword !== confirmationPassword) {
+      throw new Error("The email and confirmationEmail doesn't match ")
+    }
+    await postResetPassword({ newPassword }, token)
+  }
+
   const isLogged = () => Boolean(LocalStorageService.getAccessToken()) && Boolean(LocalStorageService.getUser());
 
   useEffect(() => {
@@ -60,5 +71,7 @@ function useProviderAuth() {
     user,
     login,
     logout,
+    forgotPassword,
+    resetPassword,
   };
 }

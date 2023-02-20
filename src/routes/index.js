@@ -45,7 +45,11 @@ export default function Router() {
             </GuestGuard>
           ),
         },
-        { path: 'reset-password', element: <div /> },
+        { path: 'reset-password', element:(
+          <GuestGuard>
+            <ResetPassword />
+          </GuestGuard>
+        ),  },
         { path: 'verify', element: <div /> },
       ],
     },
@@ -101,3 +105,4 @@ const DashboardLayout = Loadable(lazy(() => import('../layouts/dashboard')));
 const LogoOnlyLayout = Loadable(lazy(() => import('../layouts/LogoOnlyLayout')));
 const CreateAttraction = Loadable(lazy(() => import('../pages/CreateAttraction')));
 const Attraction = Loadable(lazy(() => import('../pages/Attraction')));
+const ResetPassword = Loadable(lazy(() => import('../pages/ResetPassword')));
