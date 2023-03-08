@@ -1,18 +1,15 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 // form
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm } from 'react-hook-form';
 // @mui
 import { LoadingButton } from '@mui/lab';
-import { IconButton, InputAdornment, Link, Stack } from '@mui/material';
+import { Stack } from '@mui/material';
 
 // toast
 import { toast } from 'react-toastify';
 // components
 import PropTypes from 'prop-types';
-import Iconify from '../../components/common/Iconify';
 import { FormProvider, RHFTextField } from '../../components/hook-form';
 
 import { useAuth } from '../../hooks/useAuth';
