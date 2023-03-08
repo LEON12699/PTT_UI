@@ -11,10 +11,11 @@ import { IconButton, InputAdornment, Link, Stack } from '@mui/material';
 // toast
 import { toast } from 'react-toastify';
 // components
-import Iconify from '../components/common/Iconify';
-import { FormProvider, RHFTextField } from '../components/hook-form';
+import Iconify from '../../components/common/Iconify';
+import { FormProvider, RHFTextField } from '../../components/hook-form';
 
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
+import { PATH_AUTH } from '../../routes/paths';
 
 // ----------------------------------------------------------------------
 
@@ -80,7 +81,7 @@ export default function LoginForm() {
       </Stack>
 
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
-        <Link variant="subtitle2" underline="hover">
+        <Link variant="subtitle2" underline="hover" href={PATH_AUTH.resetPassword}>
           Forgot password?
         </Link>
       </Stack>

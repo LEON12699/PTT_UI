@@ -19,4 +19,18 @@ const postLoginUser = async ({ email, password }) => {
   }
 };
 
-export { postLoginUser };
+
+const postForgotPassword = async ({ email }) => {
+    const body = { email };
+    const response = await backend.post(`${AUTH_PATH}/forgotPassword`, body);
+    return fResponse(response);
+};
+
+const postResetPassword = async ({ newPassword }, token) => {
+  const body = { password: newPassword }
+  const response = await backend.post(`${AUTH_PATH}/reset-password/${token}`, body)
+  return fResponse(response);
+}
+
+
+export { postLoginUser, postForgotPassword, postResetPassword};
