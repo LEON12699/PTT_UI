@@ -3,7 +3,6 @@ import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 //
 import enLocales from './en.json';
-import deLocales from './de.json';
 import frLocales from './fr.json';
 
 // ----------------------------------------------------------------------
@@ -14,7 +13,6 @@ i18n
   .init({
     resources: {
       en: { translations: enLocales },
-      de: { translations: deLocales },
       fr: { translations: frLocales }
     },
     lng: localStorage.getItem('i18nextLng') || 'en',
